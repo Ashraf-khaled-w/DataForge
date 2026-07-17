@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const URL = "http://localhost:3000";
+const URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 // POST /login - Authenticate user
 export const loginUser = async (email, password) => {

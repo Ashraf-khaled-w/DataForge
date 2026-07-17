@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const URL = "http://localhost:3000";
+const URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 // GET /workspaces - Get all workspaces
 export const getWorkspaces = async () => {
