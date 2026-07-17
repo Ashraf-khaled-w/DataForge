@@ -95,16 +95,53 @@ const router = createBrowserRouter([
 function App() {
   const [serverState, setServerState] = useState("checking"); // 'checking' | 'sleeping' | 'alive'
   const [retryCount, setRetryCount] = useState(0);
+  const [quoteIndex, setQuoteIndex] = useState(0);
+
+  const COMEDY_QUOTES = [
+    "Spinning up the free tier hamsters... 🐹",
+    "Waking up the server from a deep 15-minute nap... 😴",
+    "Brewing a cup of coffee for the database... ☕",
+    "Patience is a virtue, especially when hosting is free! 💸",
+    "Render is searching for the power plug... 🔌",
+    "Counting the seconds since we decided not to pay... ⏳",
+    "The server is doing its morning stretches... 🧘",
+    "Loading premium lines of code on a budget tier... 🚀",
+    "Please hold, the hamsters are putting on their running shoes... 👟",
+    "Almost there! Just negotiating with the cloud routers... ☁️"
+  ];
+
+  // Rotate quotes every 4 seconds when server is sleeping
+  useEffect(() => {
+    let quoteInterval;
+    if (serverState === "sleeping") {
+      quoteInterval = setInterval(() => {
+        setQuoteIndex((prev) => (prev + 1) % COMEDY_QUOTES.length);
+      }, 4000);
+    }
+    return () => clearInterval(quoteInterval);
+  }, [serverState]);
 
   useEffect(() => {
     let active = true;
+    
+    // If the server takes longer than 1.5s to respond, show the wakeup dialog
+    const sleepTimeout = setTimeout(() => {
+      if (active) {
+        setServerState("sleeping");
+      }
+    }, 1500);
+
     const checkServer = async () => {
       try {
-        const response = await axios.get(import.meta.env.VITE_API_URL || "http://localhost:3000");
+        const response = await axios.get(import.meta.env.VITE_API_URL || "http://localhost:3000", {
+          timeout: 45000
+        });
+        clearTimeout(sleepTimeout);
         if (active) {
           setServerState("alive");
         }
       } catch (err) {
+        clearTimeout(sleepTimeout);
         if (active) {
           setServerState("sleeping");
           setTimeout(checkServer, 3000);
@@ -115,6 +152,7 @@ function App() {
     checkServer();
     return () => {
       active = false;
+      clearTimeout(sleepTimeout);
     };
   }, []);
 
@@ -147,18 +185,25 @@ function App() {
             </p>
           </div>
 
-          <div className="space-y-2 pt-2">
+          {/* Comedy Quotes Box */}
+          <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3 min-h-[52px] flex items-center justify-center">
+            <p className="text-xs text-indigo-400 font-semibold italic animate-pulse transition-all duration-500">
+              {COMEDY_QUOTES[quoteIndex]}
+            </p>
+          </div>
+
+          <div className="space-y-2 pt-1">
             <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-              <div className="h-full bg-indigo-500 rounded-full animate-pulse" style={{ width: `${Math.min(retryCount * 8, 100)}%` }}></div>
+              <div className="h-full bg-indigo-500 rounded-full transition-all duration-1000" style={{ width: `${Math.min(retryCount * 8 + 5, 100)}%` }}></div>
             </div>
             <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold uppercase tracking-wider">
               <span>Waking up instance...</span>
-              <span>Attempt #{retryCount}</span>
+              <span>Attempt #{retryCount || 1}</span>
             </div>
           </div>
           
           <p className="text-[11px] text-slate-500 italic">
-            This typically takes 30–40 seconds. The page will load automatically.
+            This typically takes 30–45 seconds. The page will open automatically.
           </p>
         </div>
       </div>
