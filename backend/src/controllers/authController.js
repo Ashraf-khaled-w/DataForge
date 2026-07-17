@@ -25,7 +25,7 @@ const setTokenCookie = (res, token) => {
   res.cookie("token", token, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? "strict" : "lax",
+    sameSite: isProduction ? "none" : "lax",
     maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
   });
 };
@@ -204,8 +204,13 @@ export const login = async (req, res, next) => {
 };
 
 export const logout = async (req, res, next) => {
+  const isProduction = process.env.NODE_ENV === "production";
   try {
-    res.clearCookie("token");
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+    });
     res.status(200).json({
       success: true,
       message: "Logged out successfully"
