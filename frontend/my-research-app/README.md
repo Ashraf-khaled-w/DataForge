@@ -1,16 +1,53 @@
-# React + Vite
+# 🎨 DataForge Frontend Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A premium, responsive React web application built with Vite and Tailwind CSS. It serves as a dynamic workspace builder, spreadsheet viewer, and real-time statistics dashboard.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Key Frontend Features
 
-## React Compiler
+### 1. Dynamic UI Schema Renderer
+* Reads the custom column configurations (schema layout) defined by the user in each Workspace.
+* Dynamically adapts forms, patient grids, filters, and charts to support **text**, **integers**, **decimals (floats)**, and **dropdown option select** variable types on-the-fly.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 2. Client-Side Serverless Wakeup Checker
+* Configured a custom checking wrapper in `App.jsx` to resolve PaaS free-tier cold starts.
+* Checks server connection on mount; if the backend takes longer than 1.5 seconds to reply, it displays an animated, glassmorphic wakeup splash loader that loops through comedy status quotes while polling the backend server.
 
-## Expanding the ESLint configuration
+### 3. Interactive Data Grid & Client Sorting
+* Displays records under a sequential counter `#1, #2, #3...` to hide raw database UUIDs.
+* Implements dynamic header click-sorting (ascending/descending) handling numerical, text, and date columns.
+* Supports xlsx download, generating clean spreadsheet files containing the dynamic records list.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 4. Real-time Charts & Analytics (Chart.js)
+* Visualizes data distributions dynamically using Doughnut, Bar, and Line charts.
+* The analysis engine processes decimal variables using precise floating-point rounding (averages showing to 2 decimal places, intervals showing ranges to 1 decimal place) and group boundaries.
+
+### 5. In-Memory Session Security
+* Authenticates session status strictly in-memory using React Context (`AuthContext.jsx`).
+* Never uses `localStorage` or `sessionStorage` for storing tokens, preventing token extraction via malicious XSS injection scripts.
+
+---
+
+## 🛠 Tech Stack
+* **Vite & React (v19)**: Build tool and UI library.
+* **Tailwind CSS**: Core glassmorphic styling system.
+* **React Router Dom (v6)**: Declarative layout routing and legacy path redirects.
+* **Chart.js & React-Chartjs-2**: High-performance canvas chart engines.
+* **Axios**: Promised-based HTTP client (with `withCredentials = true` configured globally for cookie exchange).
+
+---
+
+## 💡 Startup & Installation
+1. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+2. Start the Vite local development server:
+   ```bash
+   pnpm run dev
+   ```
+3. Compile for production:
+   ```bash
+   pnpm run build
+   ```

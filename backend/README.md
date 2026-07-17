@@ -1,51 +1,70 @@
-# 🏥 Medical Research Data API
+# 🛠️ DataForge Backend API
 
-A robust, high-performance Backend API designed for managing medical research data and patient records. This project leverages PostgreSQL's advanced JSONB capabilities to provide a schema-less, flexible data structure suitable for dynamic research requirements.
+A high-performance, secure Node.js & Express RESTful API designed for dynamic data cataloging, workspace variable modeling, and bulk data ingestion. The system utilizes PostgreSQL's JSONB capabilities to allow on-the-fly database modeling without database migrations.
 
 ---
 
 ## 🚀 Key Technical Features
 
-### 1. Schema Flexibility with JSONB
-We utilize PostgreSQL `JSONB` columns to store patient data. This eliminates the need for rigid schemas, allowing researchers to define dynamic column configurations for different studies.
-
+### 1. Schema-Less Modeling via PostgreSQL JSONB
+To allow users to define custom tables (workspaces) with their own column configurations (e.g., text, number, decimal, select lists), attributes are stored dynamically in a PostgreSQL `JSONB` column.
 ```javascript
-// Patients data stored as flexible JSONB objects
+// Inserting records dynamically without rigid database columns
 const result = await db.query(
-  "INSERT INTO patients_data (study_id, data) VALUES ($1, $2)",
-  [study_id, JSON.stringify(patient)]
+  "INSERT INTO records (workspace_id, data, created_by) VALUES ($1, $2, $3) RETURNING *",
+  [workspaceId, JSON.stringify(recordData), userId]
 );
 ```
 
-### 2. High-Performance Bulk Insertion
-To handle large datasets efficiently, we utilize `jsonb_array_elements`. This allows sending the entire Excel dataset as a single array, letting the database engine handle the parsing and insertion internally, which significantly reduces network latency.
-
+### 2. High-Performance Bulk Data Ingestion
+To prevent server memory bloat and reduce network latency during Excel/CSV uploads:
+* Parse spreadsheets directly from RAM via **SheetJS (xlsx)** and **Multer** (in-memory storage).
+* Bulk insert rows into PostgreSQL using `jsonb_array_elements` in a single transaction, shifting parsing performance directly to the database engine.
 ```javascript
-const insertQuery = "INSERT INTO patients_data (study_id, data) SELECT $1, jsonb_array_elements($2)";
-await db.query(insertQuery, [study_id, JSON.stringify(patientsData)]);
+const query = `
+  INSERT INTO records (workspace_id, data, created_by) 
+  SELECT $1, jsonb_array_elements($2), $3
+`;
+await db.query(query, [workspaceId, JSON.stringify(recordsArray), userId]);
 ```
 
-### 3. Connection Pooling
-Instead of creating a new connection for every request, we use `pg.Pool`. This dramatically improves throughput and ensures the API stays responsive under load.
+### 3. Session Security & HTTP-Only Cookie Authentication
+To eliminate XSS (Cross-Site Scripting) token theft:
+* Implemented session authentication using `cookie-parser`.
+* JWT session tokens are signed and delivered in an **HTTP-Only, SameSite=Lax** cookie.
+* Frontend keeps authentication strictly in-memory (no local storage exposure).
 
-```javascript
-const pool = new Pool({ /* connection config */ });
-```
-
-### 4. Efficient File Processing
-We integrate `multer` with memory storage and `xlsx` to parse files directly from RAM. This avoids unnecessary disk I/O, keeping the server clean and fast.
+### 4. Subscription Limit Validations
+* Enforces workspace creation and record insertion limits based on user subscription tiers (`free`, `pro`, `team`).
+* Automatically runs background cron checks to purge expired 24-hour trials and temporary guest entries.
 
 ---
 
 ## 🛠 Tech Stack
-
-*   **Node.js & Express**: Lightweight, fast, and minimal web application framework.
-*   **PostgreSQL**: Reliable relational database storage equipped with powerful JSONB indexing capabilities.
-*   **Multer & SheetJS (xlsx)**: Utilized for seamless, in-memory Excel and CSV parsing.
+* **Node.js & Express**: Event-driven runtime environment and minimal REST framework.
+* **PostgreSQL (Neon.tech / pg)**: Relational storage engine with native JSONB indexing.
+* **Bcryptjs & JsonWebToken**: Secure authentication password hashing and token signs.
+* **SheetJS & Multer**: High-performance in-memory spreadsheet parsing.
 
 ---
 
-## 💡 Why this architecture?
-
-*   **Future-Proof**: The `columns_config` system allows the frontend to dynamically render UI based on study needs without requiring database schema or backend modifications.
-*   **Scalable**: The bulk insertion logic ensures that importing thousands of patient records happens in milliseconds.
+## 💡 Startup & Installation
+1. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+2. Configure your `.env` variables:
+   ```env
+   PORT=3000
+   NODE_ENV=production
+   DATABASE_URL=postgresql://...
+   JWT_SECRET=your_jwt_secret_key
+   ```
+3. Initialize the database schema and seed the default test accounts:
+   ```bash
+   node src/config/initDb.js
+   ```
+4. Start the server:
+   ```bash
+   node src/server.js
+   ```
