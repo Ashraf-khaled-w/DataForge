@@ -1,0 +1,21 @@
+# Dependencies (Ignore all node_modules)
+**/node_modules/
+**/.pnpm-store/
+pnpm-lock.yaml
+package-lock.json
+
+# Local Environment Variables & Secrets
+**/.env
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
+
+# Production Build Directories
+**/dist/
+**/build/
+.pnpm-debug.log*
+
+# System Files
+.DS_Store
+Thumbs.db
