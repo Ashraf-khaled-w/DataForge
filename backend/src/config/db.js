@@ -11,13 +11,20 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 const { Pool } = pg;
 
-const db = new Pool({
-  user: process.env.DB_USER || "postgres",
-  host: process.env.DB_HOST || "localhost",
-  database: process.env.DB_DATABASE || "reports",
-  password: process.env.DB_PASSWORD || "",
-  port: parseInt(process.env.DB_PORT || "5432", 10),
-});
+const db = new Pool(
+  process.env.DATABASE_URL
+    ? {
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false },
+      }
+    : {
+        user: process.env.DB_USER || "postgres",
+        host: process.env.DB_HOST || "localhost",
+        database: process.env.DB_DATABASE || "reports",
+        password: process.env.DB_PASSWORD || "",
+        port: parseInt(process.env.DB_PORT || "5432", 10),
+      }
+);
 
 // Test connection on startup
 db.connect((err) => {
