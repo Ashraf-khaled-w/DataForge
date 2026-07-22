@@ -125,27 +125,55 @@ function RecordsTable() {
   const [uploading, setUploading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
+
   // Sort State
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
+  // Load workspace details once on mount/workspace change
   useEffect(() => {
-    const loadData = async () => {
+    const loadWorkspaceData = async () => {
       try {
         setLoading(true);
-        const [studyData, patientsData] = await Promise.all([
-          getWorkspace(workspaceId),
-          getRecordsByWorkspaceId(workspaceId),
-        ]);
+        const studyData = await getWorkspace(workspaceId);
         setStudy(studyData);
-        setPatients(patientsData);
       } catch (error) {
-        console.error("Error loading workspace or record details:", error);
+        console.error("Error loading workspace details:", error);
       } finally {
         setLoading(false);
       }
     };
-    loadData();
+    loadWorkspaceData();
   }, [workspaceId]);
+
+  // Fetch records page helper
+  const fetchRecords = async (page) => {
+    try {
+      const data = await getRecordsByWorkspaceId(workspaceId, page, 50);
+      if (data && data.success) {
+        setPatients(data.records || []);
+        setTotalPages(data.totalPages || 1);
+        setTotalRecords(data.totalRecords || 0);
+        setCurrentPage(data.currentPage || 1);
+      } else {
+        // Fallback for raw arrays
+        setPatients(Array.isArray(data) ? data : []);
+        setTotalPages(1);
+        setTotalRecords(Array.isArray(data) ? data.length : 0);
+        setCurrentPage(1);
+      }
+    } catch (error) {
+      console.error("Error loading records:", error);
+    }
+  };
+
+  // Load records on mount or page change
+  useEffect(() => {
+    fetchRecords(currentPage);
+  }, [workspaceId, currentPage]);
 
   const getFields = () => {
     if (!study?.config) return [];
@@ -280,8 +308,9 @@ function RecordsTable() {
     try {
       await uploadRecordsFile(workspaceId, file);
       alert("Records imported successfully!");
-      const updatedPatients = await getRecordsByWorkspaceId(workspaceId);
-      setPatients(updatedPatients);
+      // Reset to page 1 and fetch updated list
+      setCurrentPage(1);
+      await fetchRecords(1);
     } catch (error) {
       console.error("Error uploading records file:", error);
       alert(error.response?.data?.error?.message || "Failed to upload file. Check subscription record limits.");
@@ -301,10 +330,11 @@ function RecordsTable() {
         data: formValues
       };
 
-      const responseData = await addRecord(newRecord);
-      const createdRecord = responseData?.id ? responseData : { id: Date.now(), ...newRecord };
-
-      setPatients((prev) => [createdRecord, ...prev]);
+      await addRecord(newRecord);
+      
+      // Re-fetch page 1 to sync with paginated database state
+      setCurrentPage(1);
+      await fetchRecords(1);
       setFormValues({});
       setIsModalOpen(false);
     } catch (error) {
@@ -321,7 +351,8 @@ function RecordsTable() {
     }
     try {
       await deleteRecord(id);
-      setPatients((prev) => prev.filter((p) => p.id !== id));
+      // Re-fetch the current page to replace the deleted row
+      await fetchRecords(currentPage);
     } catch (error) {
       console.error("Error deleting record:", error);
       alert("Failed to delete record.");
@@ -546,7 +577,7 @@ function RecordsTable() {
                   {sortedPatients.map((patient, idx) => (
                     <tr key={patient.id} className="hover:bg-slate-805/30 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap text-xs font-mono text-slate-400">
-                        {idx + 1}
+                        {(currentPage - 1) * 50 + idx + 1}
                       </td>
                       {fields.map((field) => (
                         <td key={field.key} className="px-6 py-4 whitespace-nowrap text-xs text-slate-300 font-medium">
@@ -568,6 +599,38 @@ function RecordsTable() {
                   ))}
                 </tbody>
               </table>
+
+              {/* Pagination Controls Bar */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 bg-slate-900/40 border-t border-slate-800 rounded-b-2xl">
+                <div className="text-xs text-slate-400">
+                  Showing <span className="font-semibold text-white">{patients.length}</span> of <span className="font-semibold text-white">{totalRecords}</span> records
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="p-1.5 border border-slate-700 rounded-lg text-slate-300 bg-slate-850 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    title="Previous Page"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <span className="text-xs font-semibold text-slate-300 px-3">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="p-1.5 border border-slate-700 rounded-lg text-slate-300 bg-slate-850 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    title="Next Page"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>

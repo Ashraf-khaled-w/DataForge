@@ -14,9 +14,9 @@ export const addRecord = async (record) => {
   return response.data;
 };
 
-// GET /records/workspace/:id - Get records for a workspace
-export const getRecordsByWorkspaceId = async (workspaceId) => {
-  const response = await axios.get(`${URL}/records/workspace/${workspaceId}`);
+// GET /records/workspace/:id - Get records for a workspace (with pagination)
+export const getRecordsByWorkspaceId = async (workspaceId, page = 1, limit = 50) => {
+  const response = await axios.get(`${URL}/records/workspace/${workspaceId}?page=${page}&limit=${limit}`);
   return response.data;
 };
 

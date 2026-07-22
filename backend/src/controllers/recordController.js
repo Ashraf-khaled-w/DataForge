@@ -47,6 +47,82 @@ const verifyRecordLimit = async (workspaceId, incomingCount) => {
   }
 };
 
+// Validate JSONB records dynamic fields against workspace schema config
+const validateRecordData = async (workspaceId, data) => {
+  if (!data || typeof data !== "object") {
+    const err = new Error("بنية البيانات غير صالحة");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const wsResult = await db.query("SELECT config FROM workspaces WHERE id = $1", [workspaceId]);
+  if (wsResult.rows.length === 0) {
+    const err = new Error("المساحة غير موجودة");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  const ws = wsResult.rows[0];
+  let parsedConfig;
+  try {
+    parsedConfig = typeof ws.config === "string" ? JSON.parse(ws.config) : ws.config;
+  } catch (e) {
+    const err = new Error("فشل في قراءة إعدادات حقول المساحة");
+    err.statusCode = 500;
+    throw err;
+  }
+
+  const fields = parsedConfig?.fields || [];
+
+  for (const field of fields) {
+    const val = data[field.key];
+
+    // Check required fields
+    if (field.required) {
+      if (val === undefined || val === null || String(val).trim() === "") {
+        const err = new Error(`الحلق "${field.label || field.key}" مطلوب.`);
+        err.statusCode = 400;
+        throw err;
+      }
+    }
+
+    // Type checking
+    if (val !== undefined && val !== null && String(val).trim() !== "") {
+      if (field.type === "number" || field.type === "decimal") {
+        const numVal = Number(val);
+        if (isNaN(numVal)) {
+          const err = new Error(`قيمة الحقل "${field.label || field.key}" يجب أن تكون رقماً.`);
+          err.statusCode = 400;
+          throw err;
+        }
+        if (field.type === "number" && !Number.isInteger(numVal)) {
+          const err = new Error(`قيمة الحقل "${field.label || field.key}" يجب أن تكون رقماً صحيحاً (بدون فواصل).`);
+          err.statusCode = 400;
+          throw err;
+        }
+      }
+
+      if (field.type === "select" && field.options && field.options.length > 0) {
+        if (!field.options.includes(String(val))) {
+          const err = new Error(`قيمة الحقل "${field.label || field.key}" غير موجودة في قائمة الخيارات.`);
+          err.statusCode = 400;
+          throw err;
+        }
+      }
+    }
+  }
+
+  // Basic sanitization to prevent Stored XSS injection on text parameters
+  const sanitizedData = { ...data };
+  for (const key of Object.keys(sanitizedData)) {
+    if (typeof sanitizedData[key] === "string") {
+      sanitizedData[key] = sanitizedData[key].replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
+    }
+  }
+
+  return sanitizedData;
+};
+
 export const getRecords = async (req, res, next) => {
   const userId = req.user.id;
   const userRole = req.user.role;
@@ -100,12 +176,15 @@ export const createRecord = async (req, res, next) => {
     // Check write access to workspace
     await checkWorkspaceAccess(workspace_id, userId, userRole, "write");
 
+    // Validate schema
+    const validatedData = await validateRecordData(workspace_id, data);
+
     // Check plan limits
     await verifyRecordLimit(workspace_id, 1);
 
     const result = await db.query(
       "INSERT INTO records (workspace_id, data, created_by) VALUES ($1, $2, $3) RETURNING *",
-      [workspace_id, JSON.stringify(data), userId]
+      [workspace_id, JSON.stringify(validatedData), userId]
     );
 
     res.status(201).json(result.rows[0]);
@@ -119,16 +198,37 @@ export const getRecordsByWorkspaceId = async (req, res, next) => {
   const userId = req.user.id;
   const userRole = req.user.role;
 
+  const page = parseInt(req.query.page || "1", 10);
+  const limit = parseInt(req.query.limit || "50", 10);
+  const offset = (page - 1) * limit;
+
   try {
     // Verify user has read access to workspace
     await checkWorkspaceAccess(id, userId, userRole, "read");
 
-    const result = await db.query(
-      "SELECT * FROM records WHERE workspace_id = $1 ORDER BY updated_at DESC",
+    const recordsQuery = `
+      SELECT * FROM records 
+      WHERE workspace_id = $1 
+      ORDER BY updated_at DESC 
+      LIMIT $2 OFFSET $3
+    `;
+    const result = await db.query(recordsQuery, [id, limit, offset]);
+
+    const countResult = await db.query(
+      "SELECT COUNT(*) FROM records WHERE workspace_id = $1",
       [id]
     );
+    const totalRecords = parseInt(countResult.rows[0].count, 10);
+    const totalPages = Math.ceil(totalRecords / limit) || 1;
 
-    res.status(200).json(result.rows);
+    res.status(200).json({
+      success: true,
+      records: result.rows,
+      totalRecords,
+      totalPages,
+      currentPage: page,
+      limit
+    });
   } catch (error) {
     next(error);
   }
@@ -155,11 +255,16 @@ export const updateRecord = async (req, res, next) => {
 
   try {
     // Verify write access to associated workspace
-    await getRecordWithAccess(id, userId, userRole, "write");
+    const record = await getRecordWithAccess(id, userId, userRole, "write");
+
+    let validatedData = null;
+    if (data) {
+      validatedData = await validateRecordData(record.workspace_id, data);
+    }
 
     const result = await db.query(
       "UPDATE records SET data = COALESCE($1, data), updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *",
-      [data ? JSON.stringify(data) : null, id]
+      [validatedData ? JSON.stringify(validatedData) : null, id]
     );
 
     res.status(200).json(result.rows[0]);

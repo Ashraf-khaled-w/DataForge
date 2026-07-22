@@ -25,12 +25,38 @@ const port = parseInt(process.env.PORT || "3000", 10);
 initDb();
 
 // Midlewares
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://data-forge-lyart.vercel.app"
+];
+
 app.use(cors({
-  origin: true, // Allow client origin dynamically
-  credentials: true // Crucial for cookie transmission
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS policy"));
+    }
+  },
+  credentials: true
 }));
 app.use(express.json());
 app.use(cookieParser());
+
+// Anti-CSRF Header Verification Middleware
+const verifyCsrfHeader = (req, res, next) => {
+  if (req.method !== "GET" && req.method !== "OPTIONS" && req.method !== "HEAD") {
+    const csrfHeader = req.headers["x-requested-with"];
+    if (csrfHeader !== "XMLHttpRequest") {
+      return res.status(403).json({
+        success: false,
+        error: { message: "Security Block: Cross-Site Request Forgery (CSRF) blocked. Missing custom header." }
+      });
+    }
+  }
+  next();
+};
+app.use(verifyCsrfHeader);
 
 // Base diagnostic route
 app.get("/", (req, res) => {

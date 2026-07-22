@@ -110,6 +110,11 @@ export const initDb = async () => {
       );
     `);
 
+    // 7. Create Indexes
+    await db.query(`CREATE INDEX IF NOT EXISTS idx_records_workspace_id ON records (workspace_id);`);
+    await db.query(`CREATE INDEX IF NOT EXISTS idx_workspaces_owner_id ON workspaces (owner_id);`);
+    await db.query(`CREATE INDEX IF NOT EXISTS idx_workspace_members_user_id ON workspace_members (user_id);`);
+
     // Seed default plans if empty
     const planCheck = await db.query("SELECT COUNT(*) FROM plans");
     if (parseInt(planCheck.rows[0].count, 10) === 0) {

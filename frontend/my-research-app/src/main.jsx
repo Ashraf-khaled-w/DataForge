@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.jsx'
 
 axios.defaults.withCredentials = true;
+axios.defaults.headers.common["X-Requested-With"] = "XMLHttpRequest";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
