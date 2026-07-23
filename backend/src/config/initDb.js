@@ -51,7 +51,7 @@ export const initDb = async () => {
           email VARCHAR(100) UNIQUE NOT NULL,
           password_hash VARCHAR(255) NOT NULL,
           role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('admin', 'team_leader', 'user')),
-          manager_id UUID REFERENCES users(id),
+          manager_id UUID REFERENCES users(id) ON DELETE SET NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -84,7 +84,7 @@ export const initDb = async () => {
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE,
           data JSONB NOT NULL,
-          created_by UUID REFERENCES users(id),
+          created_by UUID REFERENCES users(id) ON DELETE SET NULL,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -138,6 +138,21 @@ export const initDb = async () => {
     await db.query(`CREATE INDEX IF NOT EXISTS idx_workspace_members_user_id ON workspace_members (user_id);`);
     await db.query(`CREATE INDEX IF NOT EXISTS idx_active_sessions_user_id ON active_sessions (user_id);`);
     await db.query(`CREATE INDEX IF NOT EXISTS idx_activity_logs_workspace_id ON activity_logs (workspace_id);`);
+
+    // 8. Alter constraints to support ON DELETE SET NULL for manager and creator references
+    await db.query(`
+      ALTER TABLE records 
+      DROP CONSTRAINT IF EXISTS records_created_by_fkey,
+      ADD CONSTRAINT records_created_by_fkey 
+      FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL;
+    `);
+
+    await db.query(`
+      ALTER TABLE users 
+      DROP CONSTRAINT IF EXISTS users_manager_id_fkey,
+      ADD CONSTRAINT users_manager_id_fkey 
+      FOREIGN KEY (manager_id) REFERENCES users(id) ON DELETE SET NULL;
+    `);
 
     // Seed default plans if empty
     const planCheck = await db.query("SELECT COUNT(*) FROM plans");
