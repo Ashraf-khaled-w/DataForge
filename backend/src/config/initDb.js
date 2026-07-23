@@ -110,10 +110,34 @@ export const initDb = async () => {
       );
     `);
 
+    // 5. Create Active Sessions table
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS active_sessions (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+          token_id UUID NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // 6. Create Activity Logs table
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS activity_logs (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE,
+          user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+          action VARCHAR(100) NOT NULL,
+          details TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     // 7. Create Indexes
     await db.query(`CREATE INDEX IF NOT EXISTS idx_records_workspace_id ON records (workspace_id);`);
     await db.query(`CREATE INDEX IF NOT EXISTS idx_workspaces_owner_id ON workspaces (owner_id);`);
     await db.query(`CREATE INDEX IF NOT EXISTS idx_workspace_members_user_id ON workspace_members (user_id);`);
+    await db.query(`CREATE INDEX IF NOT EXISTS idx_active_sessions_user_id ON active_sessions (user_id);`);
+    await db.query(`CREATE INDEX IF NOT EXISTS idx_activity_logs_workspace_id ON activity_logs (workspace_id);`);
 
     // Seed default plans if empty
     const planCheck = await db.query("SELECT COUNT(*) FROM plans");

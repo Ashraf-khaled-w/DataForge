@@ -1,18 +1,20 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import db from "../config/db.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "super_secret_key_change_me_in_production";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "24h";
 
-// Helper function to generate JWT token
-const generateToken = (user) => {
+// Helper function to generate JWT token with unique session token_id
+const generateToken = (user, tokenId) => {
   return jwt.sign(
     {
       id: user.id,
       email: user.email,
       role: user.role,
-      manager_id: user.manager_id
+      manager_id: user.manager_id,
+      token_id: tokenId
     },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN }
@@ -114,8 +116,13 @@ export const register = async (req, res, next) => {
       };
     }
 
+    // Enforce 1 active session limit and log in
+    const tokenId = crypto.randomUUID();
+    await db.query("DELETE FROM active_sessions WHERE user_id = $1", [user.id]);
+    await db.query("INSERT INTO active_sessions (user_id, token_id) VALUES ($1, $2)", [user.id, tokenId]);
+
     // Generate JWT and set in cookie
-    const token = generateToken(user);
+    const token = generateToken(user, tokenId);
     setTokenCookie(res, token);
 
     res.status(201).json({
@@ -186,8 +193,13 @@ export const login = async (req, res, next) => {
       };
     }
 
+    // Enforce 1 active session limit and log in
+    const tokenId = crypto.randomUUID();
+    await db.query("DELETE FROM active_sessions WHERE user_id = $1", [user.id]);
+    await db.query("INSERT INTO active_sessions (user_id, token_id) VALUES ($1, $2)", [user.id, tokenId]);
+
     // Generate token
-    const token = generateToken(user);
+    const token = generateToken(user, tokenId);
     setTokenCookie(res, token);
 
     // Remove password hash from response
@@ -206,6 +218,18 @@ export const login = async (req, res, next) => {
 export const logout = async (req, res, next) => {
   const isProduction = process.env.NODE_ENV === "production";
   try {
+    const token = req.cookies?.token;
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        if (decoded && decoded.token_id) {
+          await db.query("DELETE FROM active_sessions WHERE token_id = $1", [decoded.token_id]);
+        }
+      } catch (err) {
+        // Ignore parsing issues (expired/malformed token)
+      }
+    }
+
     res.clearCookie("token", {
       httpOnly: true,
       secure: isProduction,
@@ -343,8 +367,13 @@ export const guestLogin = async (req, res, next) => {
       );
     }
 
+    // Enforce 1 active session limit and log in
+    const tokenId = crypto.randomUUID();
+    await db.query("DELETE FROM active_sessions WHERE user_id = $1", [user.id]);
+    await db.query("INSERT INTO active_sessions (user_id, token_id) VALUES ($1, $2)", [user.id, tokenId]);
+
     // Generate JWT token
-    const token = generateToken(user);
+    const token = generateToken(user, tokenId);
     setTokenCookie(res, token);
 
     res.status(201).json({

@@ -4,6 +4,7 @@ import { getWorkspaces } from "../../services/workspaces";
 import { getRecords } from "../../services/records";
 import { getUsers } from "../../services/users";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
+import { getDashboardLogs } from "../../services/logs";
 import { useAuth } from "../Context/AuthContext";
 import {
   Chart as ChartJS,
@@ -143,19 +144,22 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedStudyId, setSelectedStudyId] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [logs, setLogs] = useState([]);
 
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
         setLoading(true);
-        const [studiesData, patientsData, usersData] = await Promise.all([
+        const [studiesData, patientsData, usersData, logsData] = await Promise.all([
           getWorkspaces(),
           getRecords(),
-          user?.role === "admin" ? getUsers() : Promise.resolve([])
+          user?.role === "admin" ? getUsers() : Promise.resolve([]),
+          (user?.role === "admin" || user?.role === "team_leader") ? getDashboardLogs() : Promise.resolve([])
         ]);
         setStudies(studiesData);
         setPatients(patientsData);
         setUsers(usersData);
+        setLogs(logsData || []);
         
         if (studiesData && studiesData.length > 0) {
           setSelectedStudyId(studiesData[0].id);
@@ -875,6 +879,62 @@ function Dashboard() {
                       }
                       return null;
                     })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Role-Based Activity Logs Section */}
+            {(user?.role === "admin" || user?.role === "team_leader") && (
+              <div className="mt-8 bg-slate-800/10 border border-slate-700/60 rounded-2xl p-6 shadow-sm">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg border border-indigo-500/20">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-white">
+                      {user.role === "admin" ? "Global Activity Audit Feed" : "Team Activity History"}
+                    </h2>
+                    <p className="text-xs text-slate-450 mt-0.5">
+                      {user.role === "admin" ? "System-wide real-time audit logs of all workspaces mutations." : "Recent actions performed by your team members and workspaces."}
+                    </p>
+                  </div>
+                </div>
+
+                {logs.length === 0 ? (
+                  <div className="text-slate-500 text-xs py-6 text-center">
+                    No recent activity logs recorded.
+                  </div>
+                ) : (
+                  <div className="max-h-96 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-800">
+                    {logs.map((log) => (
+                      <div key={log.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-slate-850/40 border border-slate-750/50 rounded-xl hover:bg-slate-850/70 transition-colors">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-semibold text-slate-300 select-none">
+                            {log.user_name ? log.user_name.substring(0, 2).toUpperCase() : "US"}
+                          </div>
+                          <div>
+                            <div className="text-xs font-medium text-slate-200">
+                              <span className="font-bold text-white mr-1">{log.user_name || "System User"}</span>
+                              {log.details || "performed an action"}
+                            </div>
+                            <div className="text-[10px] text-slate-450 mt-0.5">
+                              Action: <span className="font-semibold text-indigo-400">{log.action}</span>
+                              {log.workspace_title && (
+                                <>
+                                  {" • "} Workspace: <span className="font-semibold text-slate-350">{log.workspace_title}</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-[10px] text-slate-450 whitespace-nowrap self-end sm:self-center">
+                          {new Date(log.created_at).toLocaleString()}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

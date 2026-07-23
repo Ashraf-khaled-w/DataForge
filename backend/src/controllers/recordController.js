@@ -1,6 +1,7 @@
 import * as xlsx from "xlsx";
 import db from "../config/db.js";
 import { checkWorkspaceAccess, getSubscriptionPlan } from "./workspaceController.js";
+import { createActivityLog } from "../utils/activityLogger.js";
 
 // Helper to get record and verify workspace access
 const getRecordWithAccess = async (recordId, userId, userRole, requiredAccess) => {
@@ -186,8 +187,12 @@ export const createRecord = async (req, res, next) => {
       "INSERT INTO records (workspace_id, data, created_by) VALUES ($1, $2, $3) RETURNING *",
       [workspace_id, JSON.stringify(validatedData), userId]
     );
+    const newRecord = result.rows[0];
 
-    res.status(201).json(result.rows[0]);
+    // Log record creation event
+    await createActivityLog(workspace_id, userId, "record_created", "Added a new record row");
+
+    res.status(201).json(newRecord);
   } catch (error) {
     next(error);
   }
@@ -266,8 +271,12 @@ export const updateRecord = async (req, res, next) => {
       "UPDATE records SET data = COALESCE($1, data), updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *",
       [validatedData ? JSON.stringify(validatedData) : null, id]
     );
+    const updatedRecord = result.rows[0];
 
-    res.status(200).json(result.rows[0]);
+    // Log record update event
+    await createActivityLog(record.workspace_id, userId, "record_updated", "Updated record row details");
+
+    res.status(200).json(updatedRecord);
   } catch (error) {
     next(error);
   }
@@ -283,11 +292,15 @@ export const deleteRecord = async (req, res, next) => {
     await getRecordWithAccess(id, userId, userRole, "write");
 
     const result = await db.query("DELETE FROM records WHERE id = $1 RETURNING *", [id]);
+    const deletedRecord = result.rows[0];
+
+    // Log record deletion event
+    await createActivityLog(deletedRecord.workspace_id, userId, "record_deleted", "Deleted record row");
 
     res.status(200).json({
       success: true,
       message: "تم حذف السجل بنجاح",
-      deleted: result.rows[0]
+      deleted: deletedRecord
     });
   } catch (error) {
     next(error);
@@ -332,6 +345,9 @@ export const uploadRecords = async (req, res, next) => {
     `;
 
     await db.query(insertQuery, [workspace_id, JSON.stringify(recordsData), userId]);
+
+    // Log bulk spreadsheet import event
+    await createActivityLog(workspace_id, userId, "bulk_upload", `Bulk imported ${recordsData.length} records via spreadsheet file`);
 
     res.status(200).json({
       success: true,

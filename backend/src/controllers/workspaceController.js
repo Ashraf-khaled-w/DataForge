@@ -1,4 +1,5 @@
 import db from "../config/db.js";
+import { createActivityLog } from "../utils/activityLogger.js";
 
 // Helper to check user subscription and limits
 export const getSubscriptionPlan = async (userId) => {
@@ -170,7 +171,12 @@ export const createWorkspace = async (req, res, next) => {
       "INSERT INTO workspaces (owner_id, title, description, config) VALUES ($1, $2, $3, $4) RETURNING *",
       [userId, title, description || null, JSON.stringify(config)]
     );
-    res.status(201).json(result.rows[0]);
+    const newWorkspace = result.rows[0];
+
+    // Log workspace creation event
+    await createActivityLog(newWorkspace.id, userId, "workspace_created", `Created workspace: ${title}`);
+
+    res.status(201).json(newWorkspace);
   } catch (error) {
     next(error);
   }
@@ -217,8 +223,12 @@ export const updateWorkspace = async (req, res, next) => {
     values.push(id);
     const query = `UPDATE workspaces SET ${queryParts.join(", ")} WHERE id = $${values.length} RETURNING *`;
     const result = await db.query(query, values);
+    const updatedWorkspace = result.rows[0];
 
-    res.status(200).json(result.rows[0]);
+    // Log workspace metadata update event
+    await createActivityLog(id, userId, "workspace_updated", `Updated workspace settings: ${keys.filter(k => k !== "id" && k !== "owner_id").join(", ")}`);
+
+    res.status(200).json(updatedWorkspace);
   } catch (error) {
     next(error);
   }
@@ -244,8 +254,12 @@ export const updateWorkspaceConfig = async (req, res, next) => {
       "UPDATE workspaces SET config = config || $1 WHERE id = $2 RETURNING *",
       [JSON.stringify(config), id]
     );
+    const updatedWorkspace = result.rows[0];
 
-    res.status(200).json(result.rows[0]);
+    // Log workspace columns configuration config schema update event
+    await createActivityLog(id, userId, "workspace_config_updated", "Updated workspace columns variables layout schema");
+
+    res.status(200).json(updatedWorkspace);
   } catch (error) {
     next(error);
   }
