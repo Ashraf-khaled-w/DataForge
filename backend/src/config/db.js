@@ -35,4 +35,9 @@ db.connect((err) => {
   }
 });
 
+// Prevent Node process crashes from database idle connection drops (e.g. Neon serverless closures)
+db.on("error", (err) => {
+  console.error("Unexpected error on idle database client:", err.message);
+});
+
 export default db;
