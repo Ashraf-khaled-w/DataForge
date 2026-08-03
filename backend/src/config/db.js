@@ -26,14 +26,14 @@ const db = new Pool(
       }
 );
 
-// Test connection on startup
-db.connect((err) => {
-  if (err) {
-    console.error("Database connection error:", err.stack);
-  } else {
+// Test connection on startup via a safe, auto-released query
+db.query("SELECT 1")
+  .then(() => {
     console.log("Connected to PostgreSQL successfully!");
-  }
-});
+  })
+  .catch((err) => {
+    console.error("Database connection error on startup:", err.stack);
+  });
 
 // Prevent Node process crashes from database idle connection drops (e.g. Neon serverless closures)
 db.on("error", (err) => {
