@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { getWorkspaces } from "../../services/workspaces";
 import { getRecords } from "../../services/records";
 import { getUsers } from "../../services/users";
-import { Bar, Doughnut, Line } from "react-chartjs-2";
+import { Doughnut, Line } from "react-chartjs-2";
 import { getDashboardLogs } from "../../services/logs";
 import { useAuth } from "../Context/AuthContext";
 import {
@@ -31,6 +31,20 @@ ChartJS.register(
   PointElement,
   LineElement
 );
+
+// High-contrast, distinct color palette for clear data visualization
+const VIBRANT_PALETTE = [
+  { fill: "#3B82F6", border: "#1D4ED8", bgAlpha: "rgba(59, 130, 246, 0.15)" },  // Royal Blue
+  { fill: "#10B981", border: "#047857", bgAlpha: "rgba(16, 185, 129, 0.15)" },  // Emerald Green
+  { fill: "#F59E0B", border: "#B45309", bgAlpha: "rgba(245, 158, 11, 0.15)" },  // Amber Yellow
+  { fill: "#EF4444", border: "#B91C1C", bgAlpha: "rgba(239, 68, 68, 0.15)" },   // Bright Red
+  { fill: "#8B5CF6", border: "#6D28D9", bgAlpha: "rgba(139, 92, 246, 0.15)" },  // Vivid Purple
+  { fill: "#06B6D4", border: "#0E7490", bgAlpha: "rgba(6, 182, 212, 0.15)" },   // Cyan
+  { fill: "#F97316", border: "#C2410C", bgAlpha: "rgba(249, 115, 22, 0.15)" },  // Vivid Orange
+  { fill: "#EC4899", border: "#BE185D", bgAlpha: "rgba(236, 72, 153, 0.15)" },  // Deep Pink
+  { fill: "#14B8A6", border: "#0F766E", bgAlpha: "rgba(20, 184, 166, 0.15)" },  // Teal
+  { fill: "#6366F1", border: "#4338CA", bgAlpha: "rgba(99, 102, 241, 0.15)" },  // Indigo
+];
 
 const formatDateToISO = (date) => {
   const y = date.getFullYear();
@@ -118,7 +132,7 @@ function Dashboard() {
   const { user } = useAuth();
   const [studies, setStudies] = useState([]);
   const [patients, setPatients] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedStudyId, setSelectedStudyId] = useState("");
   const [logs, setLogs] = useState([]);
@@ -386,8 +400,9 @@ function Dashboard() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {analyticFields.map((field) => {
+                    {analyticFields.map((field, fieldIdx) => {
                       const analysis = getFieldAnalysis(field);
+                      const themeColor = VIBRANT_PALETTE[fieldIdx % VIBRANT_PALETTE.length];
 
                       if (analysis.empty) {
                         return (
@@ -399,20 +414,16 @@ function Dashboard() {
                       }
 
                       if (analysis.type === "categorical") {
+                        const bgColors = analysis.distribution.map((_, i) => VIBRANT_PALETTE[i % VIBRANT_PALETTE.length].fill);
+                        const borderColors = analysis.distribution.map((_, i) => VIBRANT_PALETTE[i % VIBRANT_PALETTE.length].border);
+
                         const chartData = {
                           labels: analysis.distribution.map((d) => d.value),
                           datasets: [
                             {
                               data: analysis.distribution.map((d) => d.count),
-                              backgroundColor: [
-                                "#000000",
-                                "#333333",
-                                "#666666",
-                                "#999999",
-                                "#CCCCCC",
-                                "#E5E5E5",
-                              ],
-                              borderColor: ["#000000", "#000000", "#000000", "#000000", "#000000", "#000000"],
+                              backgroundColor: bgColors,
+                              borderColor: borderColors,
                               borderWidth: 2,
                             },
                           ],
@@ -425,7 +436,24 @@ function Dashboard() {
                               <p className="font-mono text-xs uppercase text-neutral-500 mt-1">CATEGORICAL OPTIONS</p>
                             </div>
                             <div className="h-64 flex items-center justify-center">
-                              <Doughnut data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
+                              <Doughnut 
+                                data={chartData} 
+                                options={{ 
+                                  responsive: true, 
+                                  maintainAspectRatio: false,
+                                  plugins: {
+                                    legend: {
+                                      position: 'bottom',
+                                      labels: {
+                                        font: { family: 'JetBrains Mono', size: 11 },
+                                        color: '#000000',
+                                        padding: 16,
+                                        boxWidth: 12,
+                                      }
+                                    }
+                                  }
+                                }} 
+                              />
                             </div>
                           </div>
                         );
@@ -436,12 +464,18 @@ function Dashboard() {
                           labels: analysis.values.map((_, i) => `#${i + 1}`),
                           datasets: [
                             {
+                              label: field.label || field.key,
                               data: analysis.values,
-                              borderColor: "#000000",
-                              backgroundColor: "rgba(0, 0, 0, 0.05)",
-                              borderWidth: 2,
+                              borderColor: themeColor.fill,
+                              backgroundColor: themeColor.bgAlpha,
+                              borderWidth: 3,
+                              pointBackgroundColor: themeColor.fill,
+                              pointBorderColor: "#000000",
+                              pointBorderWidth: 1.5,
+                              pointRadius: 5,
+                              pointHoverRadius: 7,
                               fill: true,
-                              tension: 0,
+                              tension: 0.2,
                             },
                           ],
                         };
@@ -460,8 +494,14 @@ function Dashboard() {
                                   maintainAspectRatio: false,
                                   plugins: { legend: { display: false } },
                                   scales: {
-                                    y: { ticks: { color: "#000000" }, grid: { color: "#E5E5E5" } },
-                                    x: { ticks: { color: "#000000" }, grid: { display: false } },
+                                    y: { 
+                                      ticks: { color: "#000000", font: { family: 'JetBrains Mono', size: 10 } }, 
+                                      grid: { color: "#E5E5E5" } 
+                                    },
+                                    x: { 
+                                      ticks: { color: "#000000", font: { family: 'JetBrains Mono', size: 10 } }, 
+                                      grid: { display: false } 
+                                    },
                                   },
                                 }}
                               />
