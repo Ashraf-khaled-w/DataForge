@@ -111,28 +111,6 @@ const normalizeDate = (val) => {
     return formatDateToISO(parsedDate);
   }
 
-  const arabicMonths = {
-    "يناير": 1, "فبراير": 2, "مارس": 3, "أبريل": 4, "مايو": 5, "يونيو": 6,
-    "يوليو": 7, "أغسطس": 8, "سبتمبر": 9, "أكتوبر": 10, "نوفمبر": 11, "ديسمبر": 12,
-    "كانون الثاني": 1, "شباط": 2, "آذار": 3, "نيسان": 4, "أيار": 5, "حزيران": 6,
-    "تموز": 7, "آب": 8, "أيلول": 9, "تشرين الأول": 10, "تشرين الثاني": 11, "كانون الأول": 12
-  };
-
-  const words = cleanStr.split(/\s+/);
-  if (words.length === 3) {
-    let day = parseInt(words[0], 10);
-    let monthName = words[1];
-    let year = parseInt(words[2], 10);
-
-    let month = arabicMonths[monthName] || 0;
-    if (day > 0 && month > 0 && year > 1000) {
-      const date = new Date(year, month - 1, day);
-      if (!isNaN(date.getTime())) {
-        return formatDateToISO(date);
-      }
-    }
-  }
-
   return str;
 };
 
@@ -143,7 +121,6 @@ function Dashboard() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedStudyId, setSelectedStudyId] = useState("");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [logs, setLogs] = useState([]);
 
   useEffect(() => {
@@ -173,7 +150,6 @@ function Dashboard() {
     loadDashboardData();
   }, [user]);
 
-  // Extract JSONB record field values
   const getFieldValue = (patient, field) => {
     if (!patient || !field) return "";
     const key = field.key;
@@ -240,33 +216,6 @@ function Dashboard() {
 
   const totalRecords = activePatients.length;
   const totalVariables = fields.length;
-  const totalAnalyticFields = analyticFields.length;
-  
-  const getOwnerName = () => {
-    if (!currentStudyFocus) return "N/A";
-    const owner = users.find((u) => u.id === currentStudyFocus.owner_id);
-    return owner ? owner.full_name : currentStudyFocus.owner_name || "Workspace Owner";
-  };
-  const ownerName = getOwnerName();
-
-  const getCompletenessRate = () => {
-    if (!currentStudyFocus || activePatients.length === 0 || analyticFields.length === 0) return 0;
-    let expectedFields = 0;
-    let filledFields = 0;
-
-    activePatients.forEach((p) => {
-      analyticFields.forEach((f) => {
-        expectedFields++;
-        const val = getFieldValue(p, f);
-        if (val !== undefined && val !== null && String(val).trim() !== "") {
-          filledFields++;
-        }
-      });
-    });
-
-    return expectedFields > 0 ? Math.round((filledFields / expectedFields) * 100) : 100;
-  };
-  const completenessRate = getCompletenessRate();
 
   const getFieldAnalysis = (field) => {
     const values = activePatients
@@ -275,427 +224,176 @@ function Dashboard() {
 
     if (values.length === 0) return { empty: true };
 
-    if (field.type === "date" || field.type === "birthday") {
+    if (field.type === "select" || field.type === "text") {
       const counts = {};
       values.forEach((v) => {
-        const yyyymm = String(v).substring(0, 7);
-        if (/^\d{4}-\d{2}$/.test(yyyymm)) {
-          counts[yyyymm] = (counts[yyyymm] || 0) + 1;
-        } else {
-          counts["Invalid/Other"] = (counts["Invalid/Other"] || 0) + 1;
-        }
+        const str = String(v);
+        counts[str] = (counts[str] || 0) + 1;
       });
 
-      const sortedMonths = Object.keys(counts).sort();
-      const distribution = sortedMonths.map((month) => ({
-        month,
-        count: counts[month],
-      }));
-
-      return {
-        type: "timeline",
-        distribution,
-        totalRecords: values.length,
-      };
-    }
-
-    if (field.type === "number" || field.type === "decimal") {
-      const nums = values.map((v) => parseFloat(v)).filter((n) => !isNaN(n));
-      if (nums.length === 0) return { empty: true };
-
-      const total = nums.reduce((sum, val) => sum + val, 0);
-      const avg = total / nums.length;
-      const min = Math.min(...nums);
-      const max = Math.max(...nums);
-
-      const isDecimalType = field.type === "decimal";
-      const isAllInt = !isDecimalType && nums.every((n) => Number.isInteger(n));
-      const range = max - min;
-      let buckets = [];
-
-      if (range === 0) {
-        buckets = [{ range: `${min}`, count: nums.length }];
-      } else if (isAllInt && range < 5) {
-        const valCounts = {};
-        nums.forEach((n) => {
-          valCounts[n] = (valCounts[n] || 0) + 1;
-        });
-        buckets = Object.keys(valCounts)
-          .map((val) => ({
-            range: `${val}`,
-            count: valCounts[val],
-          }))
-          .sort((a, b) => parseInt(a.range, 10) - parseInt(b.range, 10));
-      } else if (isAllInt) {
-        const bucketSize = range / 5;
-        const counts = [0, 0, 0, 0, 0];
-        nums.forEach((n) => {
-          const idx = Math.min(Math.floor((n - min) / bucketSize), 4);
-          counts[idx]++;
-        });
-        buckets = counts.map((count, i) => {
-          const start = Math.floor(min + i * bucketSize);
-          const end = i < 4 ? Math.floor(min + (i + 1) * bucketSize) - 1 : max;
-          return {
-            range: `${start} - ${end}`,
-            count,
-          };
-        });
-      } else {
-        const bucketSize = range / 5;
-        const counts = [0, 0, 0, 0, 0];
-        nums.forEach((n) => {
-          const idx = Math.min(Math.floor((n - min) / bucketSize), 4);
-          counts[idx]++;
-        });
-        buckets = counts.map((count, i) => {
-          const start = (min + i * bucketSize).toFixed(1);
-          const end = (min + (i + 1) * bucketSize).toFixed(1);
-          return {
-            range: `${start} - ${end}`,
-            count,
-          };
-        });
-      }
-
-      return {
-        type: "number",
-        average: isAllInt ? Math.round(avg).toString() : avg.toFixed(2),
-        min: isAllInt ? Math.round(min) : min,
-        max: isAllInt ? Math.round(max) : max,
-        totalRecords: nums.length,
-        sum: total,
-        buckets,
-      };
-    } else {
-      const counts = {};
-      values.forEach((v) => {
-        counts[v] = (counts[v] || 0) + 1;
-      });
-      const total = values.length;
       const distribution = Object.keys(counts).map((val) => ({
         value: val,
         count: counts[val],
-        percentage: Math.round((counts[val] / total) * 100),
-      })).sort((a, b) => b.count - a.count);
+        percentage: Math.round((counts[val] / values.length) * 100),
+      }));
 
       return {
         type: "categorical",
         distribution,
-        totalRecords: total,
       };
     }
+
+    if (field.type === "number" || field.type === "decimal") {
+      const nums = values.map((v) => Number(v)).filter((n) => !isNaN(n));
+      if (nums.length === 0) return { empty: true };
+      const min = Math.min(...nums);
+      const max = Math.max(...nums);
+      const sum = nums.reduce((acc, n) => acc + n, 0);
+      const mean = (sum / nums.length).toFixed(1);
+
+      return {
+        type: "numerical",
+        values: nums,
+        min,
+        max,
+        mean,
+      };
+    }
+
+    return { empty: true };
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-4 sm:p-6 md:p-10 font-sans w-full">
-      <style dangerouslySetInnerHTML={{__html: `
-        @media print {
-          .no-print, nav, aside, header, footer, select, button {
-            display: none !important;
-          }
-          body, html, #root, main, .min-h-screen {
-            display: block !important;
-            height: auto !important;
-            min-height: 0 !important;
-            background: white !important;
-            color: black !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-          }
-          .max-w-7xl {
-            max-width: 100% !important;
-            width: 100% !important;
-            padding: 0 !important;
-            margin: 0 !important;
-          }
-          .bg-slate-800\\/25 {
-            border: 1px solid #334155 !important;
-            box-shadow: none !important;
-            break-inside: avoid !important;
-            page-break-inside: avoid !important;
-            margin-bottom: 20px !important;
-            background: transparent !important;
-          }
-          .grid {
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 20px !important;
-          }
-          .text-slate-100, .text-slate-350, .text-slate-200 {
-            color: black !important;
-          }
-        }
-      `}} />
-
-      {/* Print-Only Header */}
-      <div className="hidden print:block mb-8 border-b border-slate-700 pb-4">
-        <h1 className="text-xl font-bold text-white">DataForge Analytics Report</h1>
-        <h2 className="text-lg font-semibold text-indigo-400 mt-1">
-          Workspace / المساحة: {currentStudyFocus ? currentStudyFocus.title : "N/A"}
-        </h2>
-        {currentStudyFocus?.description && (
-          <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-            {currentStudyFocus.description}
-          </p>
-        )}
-        <div className="flex gap-6 mt-4 text-xs text-slate-500 font-medium">
-          <span>Date Generated: {new Date().toLocaleDateString()}</span>
-          <span>Total Records: {totalRecords} entries</span>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-white text-black font-serif-body py-12 px-6 md:px-10 pattern-lines">
+      <div className="max-w-7xl mx-auto space-y-8">
         
-        {/* Header Block & Selector Controls */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-slate-800/25 border border-slate-700/60 p-6 rounded-xl shadow-xl">
+        {/* Header Block */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between border-b-4 border-black pb-6 gap-6">
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-              Analytics Dashboard
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-2.5 h-2.5 bg-black"></span>
+              <span className="font-mono text-xs uppercase tracking-widest text-neutral-600 font-bold">
+                ANALYTICAL ENGINE
+              </span>
+            </div>
+            <h1 className="font-serif-display font-black text-4xl md:text-5xl uppercase tracking-tight text-black">
+              REAL-TIME ANALYTICS
             </h1>
-            <p className="text-slate-400 text-sm mt-1">
-              Real-time statistical breakdown and data ingestion visualization.
+            <p className="font-serif-body text-sm text-neutral-700 mt-1 max-w-xl">
+              Distribution metrics, variable analysis, and system activity logs.
             </p>
           </div>
-          
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            {/* Study Selector Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-2.5 border border-slate-700/60 rounded-lg px-4 py-2 bg-slate-800 hover:bg-slate-750 text-slate-200 text-sm font-bold shadow-inner transition-all cursor-pointer select-none no-print"
-              >
-                <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                </svg>
-                <span className="truncate max-w-[150px] sm:max-w-[200px]">
-                  {currentStudyFocus ? currentStudyFocus.title : "Select Workspace"}
-                </span>
-                <svg className={`w-3.5 h-3.5 text-slate-405 transition-transform duration-250 ${dropdownOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
 
-              {dropdownOpen && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)}></div>
-                  <div className="absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl z-20 py-1.5 overflow-hidden">
-                    <div className="px-3 py-1.5 border-b border-slate-805 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                      Select Workspace
-                    </div>
-                    <div className="max-h-60 overflow-y-auto">
-                      {studies.map((s) => (
-                        <button
-                          key={s.id}
-                          onClick={() => {
-                            setSelectedStudyId(s.id);
-                            setDropdownOpen(false);
-                          }}
-                          className={`w-full text-left px-4 py-2.5 text-xs font-semibold transition-colors flex items-center justify-between cursor-pointer ${
-                            s.id === selectedStudyId
-                              ? "text-indigo-400 bg-indigo-500/10"
-                              : "text-slate-300 hover:text-white hover:bg-slate-800/60"
-                          }`}
-                        >
-                          <span className="truncate pr-4">{s.title}</span>
-                          {s.id === selectedStudyId && (
-                            <svg className="w-3.5 h-3.5 text-indigo-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Print Report Button */}
-            <button
-              onClick={() => window.print()}
-              disabled={loading}
-              className="border border-slate-700 hover:bg-slate-800 text-slate-300 font-medium text-sm px-4 py-2.5 rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap no-print"
-              title="Print report or save as PDF"
-            >
-              <svg className="w-4 h-4 text-emerald-450" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-              Print Report / طباعة التقرير
-            </button>
+          <div className="flex flex-wrap items-center gap-3">
+            {studies.length > 0 && (
+              <div className="relative">
+                <select
+                  value={selectedStudyId}
+                  onChange={(e) => setSelectedStudyId(e.target.value)}
+                  className="px-4 py-2.5 border-2 border-black bg-white text-black font-mono text-xs uppercase font-bold cursor-pointer"
+                >
+                  {studies.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <Link
               to="/workspaces"
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2.5 rounded-lg shadow transition-all flex items-center justify-center gap-2 whitespace-nowrap no-print"
+              className="bg-black hover:bg-white text-white hover:text-black font-mono text-xs uppercase tracking-widest px-6 py-2.5 border-2 border-black transition-none font-bold"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-              </svg>
-              Manage Workspaces
+              WORKSPACES MANAGER
             </Link>
           </div>
         </div>
 
         {loading ? (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="bg-slate-800/40 border border-slate-700/60 p-6 rounded-xl space-y-3 shadow animate-pulse">
-                  <div className="h-4 bg-slate-800 rounded w-1/3"></div>
-                  <div className="h-7 bg-slate-800 rounded w-1/2"></div>
-                </div>
-              ))}
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 bg-slate-800/20 h-80 rounded-xl border border-slate-700/60 animate-pulse"></div>
-              <div className="bg-slate-800/20 h-80 rounded-xl border border-slate-700/60 animate-pulse"></div>
-            </div>
+          <div className="p-8 font-mono text-xs uppercase tracking-widest text-neutral-500">
+            COMPUTING DASHBOARD METRICS...
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* Metrics Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
               
-              {/* Card 1: Active Workspace */}
-              <div className="bg-slate-800/20 p-5 border border-slate-700/60 rounded-xl shadow-sm flex items-center gap-4">
-                <div className="p-3 bg-indigo-500/10 text-indigo-400 rounded-lg border border-indigo-500/20">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                </div>
-                <div className="overflow-hidden">
-                  <span className="text-slate-450 text-[10px] font-semibold uppercase tracking-wider block">Active Workspace</span>
-                  <span className="text-xs font-bold text-slate-200 truncate block" title={currentStudyFocus?.title || "N/A"}>
-                    {currentStudyFocus ? currentStudyFocus.title : "N/A"}
-                  </span>
-                </div>
+              <div className="border-2 border-black p-5 bg-white space-y-2">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-neutral-500 font-bold block">
+                  ACTIVE WORKSPACE
+                </span>
+                <span className="font-serif-display font-bold text-xl text-black truncate block">
+                  {currentStudyFocus ? currentStudyFocus.title : "N/A"}
+                </span>
               </div>
 
-              {/* Card 2: Total Records */}
-              <div className="bg-slate-800/20 p-5 border border-slate-700/60 rounded-xl shadow-sm flex items-center gap-4">
-                <div className="p-3 bg-rose-500/10 text-rose-400 rounded-lg border border-rose-500/20">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857" />
-                  </svg>
-                </div>
-                <div>
-                  <span className="text-slate-450 text-[10px] font-semibold uppercase tracking-wider block">Total Records</span>
-                  <span className="text-2xl font-bold text-slate-200">{totalRecords}</span>
-                </div>
+              <div className="border-2 border-black p-5 bg-white space-y-2">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-neutral-500 font-bold block">
+                  TOTAL RECORDS
+                </span>
+                <span className="font-serif-display font-black text-4xl text-black">
+                  {totalRecords}
+                </span>
               </div>
 
-              {/* Card 3: Configured Fields */}
-              <div className="bg-slate-800/20 p-5 border border-slate-700/60 rounded-xl shadow-sm flex items-center gap-4">
-                <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                </div>
-                <div>
-                  <span className="text-slate-450 text-[10px] font-semibold uppercase tracking-wider block">Total Fields</span>
-                  <span className="text-2xl font-bold text-slate-200">{totalVariables}</span>
-                </div>
+              <div className="border-2 border-black p-5 bg-white space-y-2">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-neutral-500 font-bold block">
+                  TOTAL FIELDS
+                </span>
+                <span className="font-serif-display font-black text-4xl text-black">
+                  {totalVariables}
+                </span>
               </div>
 
-              {/* Card 4: Creator Owner */}
-              <div className="bg-slate-800/20 p-5 border border-slate-700/60 rounded-xl shadow-sm flex items-center gap-4">
-                <div className="p-3 bg-amber-500/10 text-amber-450 rounded-lg border border-amber-500/20">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-                <div className="overflow-hidden">
-                  <span className="text-slate-450 text-[10px] font-semibold uppercase tracking-wider block">Workspace Owner</span>
-                  <span className="text-xs font-bold text-slate-200 truncate block" title={ownerName}>
-                    {ownerName}
-                  </span>
-                </div>
+              <div className="border-2 border-black p-5 bg-white space-y-2">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-neutral-500 font-bold block">
+                  WORKSPACE OWNER
+                </span>
+                <span className="font-serif-display font-bold text-xl text-black truncate block">
+                  {currentStudyFocus?.owner_name || "SYSTEM"}
+                </span>
               </div>
 
-              {/* Card 5: Data Completeness */}
-              <div className="bg-slate-800/20 p-5 border border-slate-700/60 rounded-xl shadow-sm flex items-center gap-4">
-                <div className="p-3 bg-teal-500/10 text-teal-400 rounded-lg border border-teal-500/20">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <span className="text-slate-450 text-[10px] font-semibold uppercase tracking-wider block">Completeness</span>
-                  <span className="text-2xl font-bold text-slate-200">{completenessRate}%</span>
-                </div>
+              <div className="border-2 border-black p-5 bg-white space-y-2">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-neutral-500 font-bold block">
+                  SYSTEM USER
+                </span>
+                <span className="font-serif-display font-bold text-xl text-black truncate block">
+                  {user?.full_name || "USER"}
+                </span>
               </div>
 
             </div>
 
-            {/* Dashboard Content */}
-            {studies.length === 0 ? (
-              <div className="bg-slate-800/20 border border-slate-700/60 rounded-2xl p-12 text-center flex flex-col items-center justify-center shadow-lg">
-                <div className="w-16 h-16 bg-indigo-500/10 text-indigo-400 rounded-full flex items-center justify-center mb-4 border border-indigo-500/20">
-                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-bold text-slate-200">No Workspaces Configured</h3>
-                <p className="text-slate-450 text-xs mt-1 max-w-md">
-                  There are no workspaces configured in the system. Please go to workspaces configuration page first.
-                </p>
-                <Link
-                  to="/workspaces"
-                  className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs px-4 py-2 rounded-lg shadow transition-all"
-                >
-                  Configure Workspaces
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {totalRecords === 0 ? (
-                  <div className="bg-slate-800/20 border border-slate-700/60 rounded-2xl p-12 text-center flex flex-col items-center justify-center shadow-lg">
-                    <div className="w-16 h-16 bg-amber-500/5 text-amber-500 rounded-full flex items-center justify-center mb-4 border border-amber-500/10">
-                      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-bold text-slate-200">No Records Ingested</h3>
-                    <p className="text-slate-455 text-xs mt-1 max-w-md">
-                      This workspace schema variables exist, but no records have been added. Add records in records catalog page to visualize stats.
+            {/* Variable Analytics Section */}
+            {currentStudyFocus && (
+              <div className="border-4 border-black bg-white p-8 space-y-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b-2 border-black pb-4 gap-4">
+                  <div>
+                    <h2 className="font-serif-display font-black text-2xl uppercase tracking-tight text-black">
+                      VARIABLE ANALYTICS — {currentStudyFocus.title}
+                    </h2>
+                    <p className="font-mono text-xs uppercase tracking-widest text-neutral-600 mt-1">
+                      CHARTS GENERATED FOR COLUMNS MARKED AS ANALYTIC
                     </p>
-                    <Link
-                      to={`/workspace/${currentStudyFocus?.id}/records`}
-                      className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs px-4 py-2 rounded-lg shadow transition-all"
-                    >
-                      Go to Records Table
-                    </Link>
                   </div>
-                ) : analyticFields.length === 0 ? (
-                  <div className="bg-slate-800/20 border border-slate-700/60 rounded-2xl p-12 text-center flex flex-col items-center justify-center shadow-lg">
-                    <div className="w-16 h-16 bg-amber-500/5 text-amber-500 rounded-full flex items-center justify-center mb-4 border border-amber-500/10">
-                      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-bold text-slate-200">No Variables Marked for Analytics</h3>
-                    <p className="text-slate-455 text-xs mt-1 max-w-md">
-                      No variable config columns have the "Analyze" checkbox checked. Toggle the "Analyze" settings checkbox in the workspace manager config.
-                    </p>
-                    <Link
-                      to="/workspaces"
-                      className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs px-4 py-2 rounded-lg shadow transition-all"
-                    >
-                      Go to Workspaces Manager
-                    </Link>
+                </div>
+
+                {analyticFields.length === 0 ? (
+                  <div className="p-12 text-center border-2 border-dashed border-black font-mono text-xs text-neutral-500 uppercase tracking-widest">
+                    NO VARIABLES MARKED FOR ANALYTICS. CHECK "ANALYZE" BOX IN WORKSPACE MANAGER.
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {analyticFields.map((field) => {
                       const analysis = getFieldAnalysis(field);
 
                       if (analysis.empty) {
                         return (
-                          <div key={field.key} className="bg-slate-805/30 border border-slate-700/60 rounded-xl p-5 shadow space-y-3">
-                            <h3 className="text-base font-bold text-slate-200">{field.label || field.key} Analysis</h3>
-                            <div className="h-48 flex items-center justify-center text-slate-500 text-xs">
-                              No values registered for this analytic attribute.
-                            </div>
+                          <div key={field.key} className="border-2 border-black p-6 bg-white space-y-4">
+                            <h3 className="font-serif-display font-bold text-xl uppercase">{field.label || field.key}</h3>
+                            <p className="font-mono text-xs text-neutral-500 uppercase">NO VALUES REGISTERED FOR THIS ATTRIBUTE.</p>
                           </div>
                         );
                       }
@@ -707,153 +405,54 @@ function Dashboard() {
                             {
                               data: analysis.distribution.map((d) => d.count),
                               backgroundColor: [
-                                "rgba(99, 102, 241, 0.75)",
-                                "rgba(16, 185, 129, 0.75)",
-                                "rgba(244, 63, 94, 0.75)",
-                                "rgba(245, 158, 11, 0.75)",
-                                "rgba(6, 182, 212, 0.75)",
-                                "rgba(139, 92, 246, 0.75)",
+                                "#000000",
+                                "#333333",
+                                "#666666",
+                                "#999999",
+                                "#CCCCCC",
+                                "#E5E5E5",
                               ],
-                              borderColor: [
-                                "rgb(99, 102, 241)",
-                                "rgb(16, 185, 129)",
-                                "rgb(244, 63, 94)",
-                                "rgb(245, 158, 11)",
-                                "rgb(6, 182, 212)",
-                                "rgb(139, 92, 246)",
-                              ],
-                              borderWidth: 1.5,
-                            },
-                          ],
-                        };
-
-                        return (
-                          <div key={field.key} className="bg-slate-805/30 border border-slate-700/60 rounded-xl p-5 shadow space-y-4 flex flex-col md:flex-row gap-4 items-center">
-                            <div className="flex-1 space-y-3 w-full">
-                              <div>
-                                <h3 className="text-base font-bold text-slate-200">{field.label || field.key} Share</h3>
-                                <p className="text-xs text-slate-450">Distribution analysis of categorical options.</p>
-                              </div>
-                              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                                {analysis.distribution.map((item) => (
-                                  <div key={item.value} className="space-y-1">
-                                    <div className="flex justify-between text-xs font-semibold text-slate-350">
-                                      <span>{item.value}</span>
-                                      <span>{item.percentage}% ({item.count})</span>
-                                    </div>
-                                    <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
-                                      <div
-                                        className="bg-indigo-505 h-full rounded-full"
-                                        style={{ width: `${item.percentage}%`, backgroundColor: "rgb(99, 102, 241)" }}
-                                      ></div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                            <div className="w-full md:w-44 h-44 shrink-0 flex items-center justify-center">
-                              <Doughnut
-                                data={chartData}
-                                options={{
-                                  responsive: true,
-                                  maintainAspectRatio: false,
-                                  plugins: { legend: { display: false } },
-                                }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      } else if (analysis.type === "number") {
-                        const chartData = {
-                          labels: analysis.buckets.map((b) => b.range),
-                          datasets: [
-                            {
-                              data: analysis.buckets.map((b) => b.count),
-                              backgroundColor: "rgba(16, 185, 129, 0.75)",
-                              borderColor: "rgb(16, 185, 129)",
-                              borderWidth: 1.5,
-                              borderRadius: 4,
-                            },
-                          ],
-                        };
-
-                        return (
-                          <div key={field.key} className="bg-slate-805/30 border border-slate-700/60 rounded-xl p-5 shadow space-y-4">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
-                              <div>
-                                <h3 className="text-base font-bold text-slate-200">{field.label || field.key} Distribution</h3>
-                                <p className="text-xs text-slate-450">Statistical metrics and histogram ranges.</p>
-                              </div>
-                              <div className="flex flex-wrap gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-900 p-2 rounded-lg border border-slate-800">
-                                <div className="px-2 border-r border-slate-850">
-                                  <span className="text-[9px] text-slate-500 block font-normal">AVG</span>
-                                  <span className="text-slate-200">{analysis.average}</span>
-                                </div>
-                                <div className="px-2 border-r border-slate-850">
-                                  <span className="text-[9px] text-slate-500 block font-normal">MIN</span>
-                                  <span className="text-slate-200">{analysis.min}</span>
-                                </div>
-                                <div className="px-2">
-                                  <span className="text-[9px] text-slate-500 block font-normal">MAX</span>
-                                  <span className="text-slate-200">{analysis.max}</span>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="h-44">
-                              <Bar
-                                data={chartData}
-                                options={{
-                                  responsive: true,
-                                  maintainAspectRatio: false,
-                                  plugins: { legend: { display: false } },
-                                  scales: {
-                                    y: {
-                                      beginAtZero: true,
-                                      ticks: { precision: 0, color: "#64748b" },
-                                      grid: { color: "#334155" }
-                                    },
-                                    x: {
-                                      ticks: { color: "#64748b" },
-                                      grid: { display: false }
-                                    }
-                                  },
-                                }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      } else if (analysis.type === "timeline") {
-                        const chartData = {
-                          labels: analysis.distribution.map((d) => d.month),
-                          datasets: [
-                            {
-                              label: "Records Count",
-                              data: analysis.distribution.map((d) => d.count),
-                              backgroundColor: "rgba(99, 102, 241, 0.12)",
-                              borderColor: "rgb(99, 102, 241)",
+                              borderColor: ["#000000", "#000000", "#000000", "#000000", "#000000", "#000000"],
                               borderWidth: 2,
-                              pointBackgroundColor: "rgb(99, 102, 241)",
-                              pointBorderColor: "#fff",
-                              pointBorderWidth: 1.5,
-                              pointRadius: 4,
-                              tension: 0.35,
-                              fill: true,
                             },
                           ],
                         };
 
                         return (
-                          <div key={field.key} className="bg-slate-805/30 border border-slate-700/60 rounded-xl p-5 shadow space-y-4">
-                            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                              <div>
-                                <h3 className="text-base font-bold text-slate-200">{field.label || field.key} Timeline Trend</h3>
-                                <p className="text-xs text-slate-450">Total patient entries mapped chronologically by month.</p>
-                              </div>
-                              <span className="bg-indigo-500/10 text-indigo-300 text-xs font-semibold px-2.5 py-1 rounded-full border border-indigo-500/20">
-                                {analysis.totalRecords} Entries
-                              </span>
+                          <div key={field.key} className="border-2 border-black p-6 bg-white space-y-6">
+                            <div>
+                              <h3 className="font-serif-display font-bold text-xl uppercase">{field.label || field.key} DISTRIBUTION</h3>
+                              <p className="font-mono text-xs uppercase text-neutral-500 mt-1">CATEGORICAL OPTIONS</p>
                             </div>
-                            <div className="h-44">
+                            <div className="h-64 flex items-center justify-center">
+                              <Doughnut data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      if (analysis.type === "numerical") {
+                        const chartData = {
+                          labels: analysis.values.map((_, i) => `#${i + 1}`),
+                          datasets: [
+                            {
+                              data: analysis.values,
+                              borderColor: "#000000",
+                              backgroundColor: "rgba(0, 0, 0, 0.05)",
+                              borderWidth: 2,
+                              fill: true,
+                              tension: 0,
+                            },
+                          ],
+                        };
+
+                        return (
+                          <div key={field.key} className="border-2 border-black p-6 bg-white space-y-6">
+                            <div>
+                              <h3 className="font-serif-display font-bold text-xl uppercase">{field.label || field.key} NUMERICAL TREND</h3>
+                              <p className="font-mono text-xs uppercase text-neutral-500 mt-1">MIN: {analysis.min} | MAX: {analysis.max} | MEAN: {analysis.mean}</p>
+                            </div>
+                            <div className="h-64">
                               <Line
                                 data={chartData}
                                 options={{
@@ -861,15 +460,8 @@ function Dashboard() {
                                   maintainAspectRatio: false,
                                   plugins: { legend: { display: false } },
                                   scales: {
-                                    y: {
-                                      beginAtZero: true,
-                                      ticks: { precision: 0, color: "#64748b" },
-                                      grid: { color: "#334155" }
-                                    },
-                                    x: {
-                                      ticks: { color: "#64748b" },
-                                      grid: { display: false }
-                                    }
+                                    y: { ticks: { color: "#000000" }, grid: { color: "#E5E5E5" } },
+                                    x: { ticks: { color: "#000000" }, grid: { display: false } },
                                   },
                                 }}
                               />
@@ -886,51 +478,36 @@ function Dashboard() {
 
             {/* Role-Based Activity Logs Section */}
             {(user?.role === "admin" || user?.role === "team_leader") && (
-              <div className="mt-8 bg-slate-800/10 border border-slate-700/60 rounded-2xl p-6 shadow-sm">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg border border-indigo-500/20">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-bold text-white">
-                      {user.role === "admin" ? "Global Activity Audit Feed" : "Team Activity History"}
-                    </h2>
-                    <p className="text-xs text-slate-450 mt-0.5">
-                      {user.role === "admin" ? "System-wide real-time audit logs of all workspaces mutations." : "Recent actions performed by your team members and workspaces."}
-                    </p>
-                  </div>
+              <div className="border-4 border-black bg-white p-8 space-y-6 pattern-lines">
+                <div className="border-b-2 border-black pb-4">
+                  <h2 className="font-serif-display font-black text-2xl uppercase tracking-tight text-black">
+                    {user.role === "admin" ? "GLOBAL ACTIVITY AUDIT FEED" : "TEAM ACTIVITY HISTORY"}
+                  </h2>
+                  <p className="font-mono text-xs uppercase tracking-widest text-neutral-600 mt-1">
+                    REAL-TIME AUDIT LOGS OF ALL WORKSPACE MUTATIONS
+                  </p>
                 </div>
 
                 {logs.length === 0 ? (
-                  <div className="text-slate-500 text-xs py-6 text-center">
-                    No recent activity logs recorded.
+                  <div className="font-mono text-xs text-neutral-500 uppercase py-6 text-center">
+                    NO RECENT ACTIVITY LOGS RECORDED.
                   </div>
                 ) : (
-                  <div className="max-h-96 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-800">
+                  <div className="max-h-96 overflow-y-auto space-y-3 font-serif-body">
                     {logs.map((log) => (
-                      <div key={log.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-slate-850/40 border border-slate-750/50 rounded-xl hover:bg-slate-850/70 transition-colors">
-                        <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-semibold text-slate-300 select-none">
-                            {log.user_name ? log.user_name.substring(0, 2).toUpperCase() : "US"}
+                      <div key={log.id} className="p-4 border-2 border-black bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                          <div className="text-sm font-bold text-black">
+                            <span className="font-mono uppercase bg-black text-white px-2 py-0.5 mr-2 text-xs">
+                              {log.user_name || "USER"}
+                            </span>
+                            {log.details || "PERFORMED ACTION"}
                           </div>
-                          <div>
-                            <div className="text-xs font-medium text-slate-200">
-                              <span className="font-bold text-white mr-1">{log.user_name || "System User"}</span>
-                              {log.details || "performed an action"}
-                            </div>
-                            <div className="text-[10px] text-slate-450 mt-0.5">
-                              Action: <span className="font-semibold text-indigo-400">{log.action}</span>
-                              {log.workspace_title && (
-                                <>
-                                  {" • "} Workspace: <span className="font-semibold text-slate-350">{log.workspace_title}</span>
-                                </>
-                              )}
-                            </div>
+                          <div className="font-mono text-[10px] uppercase text-neutral-600 mt-1">
+                            ACTION: {log.action} {log.workspace_title && `| WORKSPACE: ${log.workspace_title}`}
                           </div>
                         </div>
-                        <div className="text-[10px] text-slate-450 whitespace-nowrap self-end sm:self-center">
+                        <div className="font-mono text-[10px] uppercase text-neutral-500 whitespace-nowrap">
                           {new Date(log.created_at).toLocaleString()}
                         </div>
                       </div>
@@ -941,7 +518,7 @@ function Dashboard() {
             )}
           </>
         )}
-        
+
       </div>
     </div>
   );

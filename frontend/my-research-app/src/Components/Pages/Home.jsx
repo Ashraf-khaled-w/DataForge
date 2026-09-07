@@ -18,176 +18,155 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans w-full flex flex-col relative overflow-hidden">
-      {/* Decorative blobs */}
-      <div className="absolute top-0 left-1/4 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-indigo-500/10 blur-3xl pointer-events-none"></div>
-      <div className="absolute top-1/3 right-1/4 translate-x-1/2 w-[500px] h-[500px] rounded-full bg-emerald-500/5 blur-3xl pointer-events-none"></div>
+    <div className="min-h-screen bg-white text-black font-serif-body w-full flex flex-col relative pattern-lines">
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 pb-16 md:pt-32 md:pb-24 z-10">
-        <div className="max-w-7xl mx-auto px-6 md:px-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <section className="relative pt-16 pb-24 md:pt-24 md:pb-32 border-b-4 border-black">
+        <div className="max-w-7xl mx-auto px-6 md:px-10">
           
-          {/* Hero Content */}
-          <div className="lg:col-span-6 space-y-6 text-center lg:text-left">
-            <span className="inline-flex items-center gap-1.5 bg-indigo-500/10 text-indigo-300 text-xs font-semibold px-3 py-1.5 rounded-full border border-indigo-500/20">
-              🚀 Universal Research & Data Modeling SaaS Platform
+          <div className="flex items-center gap-3 mb-8">
+            <span className="w-3 h-3 bg-black"></span>
+            <span className="font-mono text-xs uppercase tracking-widest text-neutral-600 font-bold">
+              SYSTEM EDITION NO. 01 — REASONING & DATA ENGINE
             </span>
-            
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight text-white">
-              Define, Collect & Analyze <span className="text-indigo-400">Any Dataset</span> Instantly
-            </h1>
-            
-            <p className="text-slate-450 text-base md:text-lg max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              Ditch rigid spreadsheets. Design dynamic table schemas, import mass Excel/CSV files with automatic field matching, and manage secure databases from a single portal.
-            </p>
-            
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
-              <Link
-                to="/auth"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-6 py-3.5 rounded-lg shadow-lg hover:shadow-indigo-550/30 transition-all flex items-center gap-2 text-sm"
-              >
-                Get Started
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </Link>
-              
-              <button
-                onClick={handleGuestAccess}
-                className="border border-slate-700 hover:bg-slate-800 text-slate-300 font-medium px-6 py-3.5 rounded-lg transition-all text-sm flex items-center gap-2 cursor-pointer"
-              >
-                <svg className="w-4 h-4 text-emerald-450" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                Try as Guest (Instant Access)
-              </button>
-            </div>
           </div>
-          
-          {/* Hero Visual Mockup */}
-          <div className="lg:col-span-6 z-10">
-            <div className="relative bg-slate-950 rounded-2xl shadow-2xl border border-slate-800 p-3 sm:p-5 aspect-4/3 flex flex-col overflow-hidden max-w-lg mx-auto lg:max-w-none">
-              {/* Fake Window Controls */}
-              <div className="flex items-center gap-1.5 pb-3">
-                <div className="w-3 h-3 rounded-full bg-rose-500"></div>
-                <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-                <span className="text-[10px] text-slate-500 font-mono ml-2">Console Dashboard</span>
-              </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-end">
+            
+            {/* Hero Headlines */}
+            <div className="lg:col-span-8 space-y-6">
+              <h1 className="font-serif-display font-black text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.9] tracking-tighter uppercase text-black">
+                REDUCTION <br />
+                TO ESSENCE.
+              </h1>
               
-              {/* Simulated UI Cards */}
-              <div className="bg-slate-900/50 rounded-xl p-3 border border-slate-800/80 flex-1 space-y-4 font-mono text-xs overflow-hidden">
-                <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
-                  <span className="text-slate-400">SCHEMA: User Feedback</span>
-                  <span className="text-emerald-400 font-bold">200 OK</span>
-                </div>
+              <div className="h-1.5 w-32 bg-black"></div>
+
+              <p className="font-serif-body text-lg md:text-xl text-neutral-800 max-w-2xl leading-relaxed">
+                Define dynamic relational variables, ingest high-volume spreadsheets in milliseconds, and execute real-time analytical audits without rigid database migrations.
+              </p>
+
+              <div className="pt-4 flex flex-wrap items-center gap-4">
+                <Link
+                  to="/auth"
+                  className="bg-black hover:bg-white text-white hover:text-black font-mono text-xs uppercase tracking-widest px-8 py-4 border-2 border-black transition-none cursor-pointer inline-flex items-center gap-3 font-bold shadow-none"
+                >
+                  <span>GET STARTED</span>
+                  <span>→</span>
+                </Link>
                 
-                {/* Visual DB Columns Config */}
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="bg-slate-950 p-2 rounded border border-slate-800 text-slate-300">
-                    <span className="text-indigo-400 text-[10px] block">field_1</span>
-                    Customer (Text)
-                  </div>
-                  <div className="bg-slate-950 p-2 rounded border border-slate-800 text-slate-300">
-                    <span className="text-indigo-400 text-[10px] block">field_2</span>
-                    Rating (Number)
-                  </div>
-                  <div className="bg-slate-950 p-2 rounded border border-slate-800 text-slate-300">
-                    <span className="text-indigo-400 text-[10px] block">field_3</span>
-                    Review (Text)
-                  </div>
-                </div>
-
-                {/* Table preview mock */}
-                <div className="space-y-1.5">
-                  <span className="text-slate-500 text-[10px] block uppercase">Parsed Records (jsonb)</span>
-                  <div className="bg-slate-950 p-2 rounded text-[11px] text-slate-450 overflow-x-auto whitespace-nowrap border border-slate-850">
-                    {"[ { id: 1, name: 'Alice', rating: 5 }, { id: 2, name: 'Bob', rating: 4 } ]"}
-                  </div>
-                </div>
-
-                {/* Progress mock */}
-                <div className="flex items-center justify-between bg-indigo-950/40 p-2 rounded border border-indigo-900/30 text-indigo-300 text-[11px]">
-                  <span className="flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5 animate-spin text-indigo-400" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Uploading dataset_v2.xlsx...
-                  </span>
-                  <span className="font-bold">100% Completed</span>
-                </div>
+                <button
+                  onClick={handleGuestAccess}
+                  className="bg-white hover:bg-black text-black hover:text-white font-mono text-xs uppercase tracking-widest px-8 py-4 border-2 border-black transition-none cursor-pointer font-bold"
+                >
+                  TRY INSTANT GUEST
+                </button>
               </div>
             </div>
+
+            {/* Editorial Metadata Column */}
+            <div className="lg:col-span-4 border-2 border-black p-6 bg-white space-y-4 font-mono text-xs uppercase tracking-widest pattern-grid">
+              <div className="flex items-center justify-between border-b border-black pb-2">
+                <span className="font-bold">SPECIFICATION</span>
+                <span>STATUS: VERIFIED</span>
+              </div>
+              <div className="space-y-2 text-neutral-700">
+                <p>• SCHEMA: JSONB DYNAMIC</p>
+                <p>• PARSING: MEMORY STREAM</p>
+                <p>• AUTH: HTTP-ONLY COOKIES</p>
+                <p>• CONCURRENCY: SINGLE SESSION</p>
+              </div>
+              <div className="border-t border-black pt-3 flex items-center justify-between">
+                <span>VERSION</span>
+                <span className="font-bold">v1.0.0</span>
+              </div>
+            </div>
+
           </div>
-          
         </div>
       </section>
 
-      {/* Feature Section */}
-      <section id="features" className="py-16 md:py-24 border-t border-slate-800 bg-slate-900/60 z-10">
-        <div className="max-w-7xl mx-auto px-6 md:px-10 space-y-12">
+      {/* Inverted Stats Banner */}
+      <section className="bg-black text-white py-16 border-b-4 border-black pattern-lines-inverted">
+        <div className="max-w-7xl mx-auto px-6 md:px-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-center font-mono">
+          <div className="border-r border-neutral-800 last:border-r-0 pr-4">
+            <span className="font-serif-display font-bold text-4xl md:text-5xl block text-white">100%</span>
+            <span className="text-[10px] uppercase tracking-widest text-neutral-400 mt-1 block">MONOCHROME ACCURACY</span>
+          </div>
+          <div className="border-r border-neutral-800 last:border-r-0 pr-4">
+            <span className="font-serif-display font-bold text-4xl md:text-5xl block text-white">&lt; 10ms</span>
+            <span className="text-[10px] uppercase tracking-widest text-neutral-400 mt-1 block">JSONB QUERY TIME</span>
+          </div>
+          <div className="border-r border-neutral-800 last:border-r-0 pr-4">
+            <span className="font-serif-display font-bold text-4xl md:text-5xl block text-white">0px</span>
+            <span className="text-[10px] uppercase tracking-widest text-neutral-400 mt-1 block">BORDER RADIUS</span>
+          </div>
+          <div>
+            <span className="font-serif-display font-bold text-4xl md:text-5xl block text-white">24 / 7</span>
+            <span className="text-[10px] uppercase tracking-widest text-neutral-400 mt-1 block">STABLE ENGINE</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Architectural Features Section */}
+      <section id="features" className="py-24 border-b-4 border-black bg-white">
+        <div className="max-w-7xl mx-auto px-6 md:px-10 space-y-16">
           
-          <div className="text-center space-y-3">
-            <h2 className="text-3xl font-extrabold text-white">
-              Tailored Data Infrastructure Out of the Box
-            </h2>
-            <p className="text-slate-450 text-sm md:text-base max-w-xl mx-auto">
-              Our software operates as a flexible, schema-agnostic platform allowing you to configure dynamic workspaces for clinical, business, or academic projects.
+          <div className="flex flex-col md:flex-row md:items-end justify-between border-b-2 border-black pb-6 gap-6">
+            <div>
+              <span className="font-mono text-xs uppercase tracking-widest text-neutral-500 font-bold block mb-2">ARCHITECTURAL CAPABILITIES</span>
+              <h2 className="font-serif-display font-extrabold text-4xl md:text-5xl tracking-tight text-black">
+                STARK CAPABILITIES. NO FRILLS.
+              </h2>
+            </div>
+            <p className="font-serif-body text-base text-neutral-700 max-w-md">
+              Construct complex data modeling workflows with sharp precision and instant responsiveness.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             
             {/* Feature 1 */}
-            <div className="bg-slate-800/40 p-6 border border-slate-700/50 rounded-2xl shadow-sm hover:border-slate-650 transition-all space-y-4">
-              <div className="w-10 h-10 bg-indigo-500/10 text-indigo-450 rounded-xl flex items-center justify-center border border-indigo-500/20">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
+            <div className="border-2 border-black p-8 bg-white transition-colors duration-100 hover:bg-black hover:text-white group space-y-6">
+              <div className="w-10 h-10 border-2 border-black group-hover:border-white font-mono font-bold text-lg flex items-center justify-center">
+                01
               </div>
-              <h3 className="font-bold text-slate-200 text-lg">Dynamic Schema Builder</h3>
-              <p className="text-slate-400 text-xs leading-relaxed">
-                Interactively construct database variables. Assign constraints, column headers, system keys, and specify data types (Text, Number, Date, Select).
+              <h3 className="font-serif-display font-bold text-2xl tracking-tight">Dynamic Schema</h3>
+              <p className="font-serif-body text-sm leading-relaxed text-neutral-700 group-hover:text-neutral-300">
+                Interactively define custom variable fields, validation rules, column headers, and data types (Text, Number, Date, Select).
               </p>
             </div>
 
             {/* Feature 2 */}
-            <div className="bg-slate-800/40 p-6 border border-slate-700/50 rounded-2xl shadow-sm hover:border-slate-650 transition-all space-y-4">
-              <div className="w-10 h-10 bg-emerald-500/10 text-emerald-450 rounded-xl flex items-center justify-center border border-emerald-500/20">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
+            <div className="border-2 border-black p-8 bg-white transition-colors duration-100 hover:bg-black hover:text-white group space-y-6">
+              <div className="w-10 h-10 border-2 border-black group-hover:border-white font-mono font-bold text-lg flex items-center justify-center">
+                02
               </div>
-              <h3 className="font-bold text-slate-200 text-lg">Bulk File Importer</h3>
-              <p className="text-slate-400 text-xs leading-relaxed">
-                Instantly import bulk datasets. Our server-side parser processes Excel spreadsheets and inserts records dynamically in a single transaction.
+              <h3 className="font-serif-display font-bold text-2xl tracking-tight">Bulk Ingestion</h3>
+              <p className="font-serif-body text-sm leading-relaxed text-neutral-700 group-hover:text-neutral-300">
+                Parse Excel files instantly. Ingest thousands of spreadsheet records dynamically in a single transaction.
               </p>
             </div>
 
             {/* Feature 3 */}
-            <div className="bg-slate-800/40 p-6 border border-slate-700/50 rounded-2xl shadow-sm hover:border-slate-650 transition-all space-y-4">
-              <div className="w-10 h-10 bg-amber-500/10 text-amber-450 rounded-xl flex items-center justify-center border border-amber-500/20">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                </svg>
+            <div className="border-2 border-black p-8 bg-white transition-colors duration-100 hover:bg-black hover:text-white group space-y-6">
+              <div className="w-10 h-10 border-2 border-black group-hover:border-white font-mono font-bold text-lg flex items-center justify-center">
+                03
               </div>
-              <h3 className="font-bold text-slate-200 text-lg">Flexible jsonb Tables</h3>
-              <p className="text-slate-400 text-xs leading-relaxed">
-                Store structured and unstructured inputs under the same workspace. Avoid complex database migrations when column requirements shift.
+              <h3 className="font-serif-display font-bold text-2xl tracking-tight">Single Session</h3>
+              <p className="font-serif-body text-sm leading-relaxed text-neutral-700 group-hover:text-neutral-300">
+                Prevent credential sharing. Automated session tracking kicks off older logins immediately upon new entries.
               </p>
             </div>
 
             {/* Feature 4 */}
-            <div className="bg-slate-800/40 p-6 border border-slate-700/50 rounded-2xl shadow-sm hover:border-slate-650 transition-all space-y-4">
-              <div className="w-10 h-10 bg-rose-500/10 text-rose-450 rounded-xl flex items-center justify-center border border-rose-500/20">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857" />
-                </svg>
+            <div className="border-2 border-black p-8 bg-white transition-colors duration-100 hover:bg-black hover:text-white group space-y-6">
+              <div className="w-10 h-10 border-2 border-black group-hover:border-white font-mono font-bold text-lg flex items-center justify-center">
+                04
               </div>
-              <h3 className="font-bold text-slate-200 text-lg">Multi-User Collaboration</h3>
-              <p className="text-slate-400 text-xs leading-relaxed">
-                Invite workspace editors and viewers to collaborate. Track and segregate data permissions based on administrative manager hierarchies.
+              <h3 className="font-serif-display font-bold text-2xl tracking-tight">Audit Logging</h3>
+              <p className="font-serif-body text-sm leading-relaxed text-neutral-700 group-hover:text-neutral-300">
+                Track full workspace mutation histories with role-based visibility for Administrators and Team Leaders.
               </p>
             </div>
 
@@ -195,188 +174,147 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-16 md:py-24 border-t border-slate-800 bg-slate-950/40 z-10">
-        <div className="max-w-7xl mx-auto px-6 md:px-10 space-y-12">
+      {/* Editorial Pull Quote Block */}
+      <section className="py-24 bg-neutral-100 border-b-4 border-black pattern-diagonal">
+        <div className="max-w-4xl mx-auto px-6 text-center space-y-6">
+          <span className="font-serif-display text-8xl leading-none text-black block -mb-8">“</span>
+          <blockquote className="font-serif-display italic text-2xl md:text-4xl text-black font-semibold leading-snug">
+            Restraint is the ultimate form of expression. When software discards unnecessary noise, functionality becomes crystal clear.
+          </blockquote>
+          <div className="font-mono text-xs uppercase tracking-widest text-neutral-600 font-bold pt-4 border-t border-black max-w-xs mx-auto">
+            — ARCHITECTURAL PHILOSOPHY
+          </div>
+        </div>
+      </section>
+
+      {/* Sharp Monochrome Pricing Section */}
+      <section id="pricing" className="py-24 border-b-4 border-black bg-white">
+        <div className="max-w-7xl mx-auto px-6 md:px-10 space-y-16">
           
           <div className="text-center space-y-3">
-            <span className="text-xs text-indigo-400 font-bold uppercase tracking-widest">Pricing Plans</span>
-            <h2 className="text-3xl font-extrabold text-white">
-              Choose the Right Plan for Your Team
+            <span className="font-mono text-xs uppercase tracking-widest text-neutral-500 font-bold">TRANSPARENT TIERING</span>
+            <h2 className="font-serif-display font-extrabold text-4xl md:text-5xl tracking-tight text-black">
+              SELECT YOUR SUBSCRIPTION MODEL
             </h2>
-            <p className="text-slate-450 text-sm max-w-lg mx-auto">
-              Get started with a free tier account or test our premium Pro and Team tiers with a 1-day free trial.
-            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto items-stretch">
             
-            {/* Plan 1: Free */}
-            <div className="bg-slate-900/60 border border-slate-800 p-8 rounded-2xl flex flex-col justify-between hover:border-slate-700/80 transition-all shadow-lg relative">
-              <div className="space-y-4">
-                <div className="font-semibold text-slate-400 text-xs uppercase tracking-wider">Free Tier</div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-white">$0</span>
-                  <span className="text-slate-500 text-xs">/month</span>
+            {/* Free Tier */}
+            <div className="border-2 border-black p-8 bg-white flex flex-col justify-between space-y-8">
+              <div className="space-y-6">
+                <div className="font-mono text-xs uppercase tracking-widest text-neutral-500 font-bold border-b border-black pb-2">
+                  FREE TIER
                 </div>
-                <p className="text-slate-400 text-xs leading-relaxed">
-                  Perfect for individual students and researchers starting their first data catalogs.
+                <div className="flex items-baseline gap-1 font-serif-display font-bold text-5xl">
+                  $0
+                  <span className="font-mono text-xs text-neutral-500 font-normal">/ MONTH</span>
+                </div>
+                <p className="font-serif-body text-xs text-neutral-700 leading-relaxed">
+                  For individual researchers building baseline datasets.
                 </p>
-                <hr className="border-slate-800" />
-                
-                <ul className="space-y-3 text-xs text-slate-300">
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-emerald-450 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>Up to <strong>2 Workspaces</strong></span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-emerald-450 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>Max <strong>50 Records</strong> / Workspace</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-500">
-                    <svg className="w-4 h-4 text-slate-650 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    <span>No Team Members (0 seats)</span>
-                  </li>
+                <ul className="font-mono text-xs space-y-3 border-t border-black pt-4">
+                  <li className="flex items-center gap-2"><span>[✓]</span> 2 WORKSPACES</li>
+                  <li className="flex items-center gap-2"><span>[✓]</span> 50 RECORDS / WORKSPACE</li>
+                  <li className="flex items-center gap-2 text-neutral-400"><span>[×]</span> NO TEAM COLLABORATORS</li>
                 </ul>
               </div>
 
-              <div className="pt-8">
-                <Link
-                  to="/auth"
-                  state={{ plan: "free" }}
-                  className="w-full text-center bg-slate-800 hover:bg-slate-750 text-white font-semibold py-2.5 rounded-lg text-xs transition-all inline-block shadow-sm"
-                >
-                  Create Free Account
-                </Link>
-              </div>
+              <Link
+                to="/auth"
+                state={{ plan: "free" }}
+                className="w-full text-center bg-white hover:bg-black text-black hover:text-white font-mono text-xs uppercase tracking-widest py-3 border-2 border-black transition-none inline-block font-bold"
+              >
+                CREATE FREE ACCOUNT
+              </Link>
             </div>
 
-            {/* Plan 2: Pro */}
-            <div className="bg-slate-900 border-2 border-indigo-500 p-8 rounded-2xl flex flex-col justify-between shadow-2xl relative">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-500 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow">
-                Popular Trial
+            {/* Pro Tier (Elevated Inverted Card) */}
+            <div className="border-4 border-black p-8 bg-black text-white flex flex-col justify-between space-y-8 relative shadow-none">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-white text-black font-mono text-[10px] uppercase font-bold tracking-widest px-4 py-1 border-2 border-black">
+                MOST POPULAR
               </div>
-              <div className="space-y-4">
-                <div className="font-semibold text-indigo-400 text-xs uppercase tracking-wider">Pro Professional</div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-white">$19</span>
-                  <span className="text-slate-500 text-xs">/month</span>
+              <div className="space-y-6">
+                <div className="font-mono text-xs uppercase tracking-widest text-neutral-400 font-bold border-b border-neutral-800 pb-2">
+                  PRO PROFESSIONAL
                 </div>
-                <p className="text-slate-350 text-xs leading-relaxed">
-                  Ideal for freelance data analysts and clinicians seeking unlimited data records storage.
+                <div className="flex items-baseline gap-1 font-serif-display font-bold text-5xl text-white">
+                  $19
+                  <span className="font-mono text-xs text-neutral-400 font-normal">/ MONTH</span>
+                </div>
+                <p className="font-serif-body text-xs text-neutral-300 leading-relaxed">
+                  For analysts and clinicians needing unlimited records.
                 </p>
-                <hr className="border-slate-800" />
-                
-                <ul className="space-y-3 text-xs text-slate-300">
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-emerald-450 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span><strong>Unlimited</strong> Workspaces</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-emerald-450 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span><strong>Unlimited</strong> Records Ingestion</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-500">
-                    <svg className="w-4 h-4 text-slate-650 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    <span>Single User (No shared seats)</span>
-                  </li>
+                <ul className="font-mono text-xs space-y-3 border-t border-neutral-800 pt-4 text-neutral-200">
+                  <li className="flex items-center gap-2"><span>[✓]</span> UNLIMITED WORKSPACES</li>
+                  <li className="flex items-center gap-2"><span>[✓]</span> UNLIMITED INGESTION</li>
+                  <li className="flex items-center gap-2 text-neutral-500"><span>[×]</span> SINGLE SEAT</li>
                 </ul>
               </div>
 
-              <div className="pt-8">
-                <Link
-                  to="/auth"
-                  state={{ plan: "pro" }}
-                  className="w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg text-xs transition-all inline-block shadow shadow-indigo-500/20"
-                >
-                  Start 1-Day Trial (Free)
-                </Link>
-              </div>
+              <Link
+                to="/auth"
+                state={{ plan: "pro" }}
+                className="w-full text-center bg-white hover:bg-neutral-200 text-black font-mono text-xs uppercase tracking-widest py-3.5 border-2 border-white transition-none inline-block font-bold"
+              >
+                START 1-DAY TRIAL
+              </Link>
             </div>
 
-            {/* Plan 3: Team */}
-            <div className="bg-slate-900/60 border border-slate-800 p-8 rounded-2xl flex flex-col justify-between hover:border-slate-700/80 transition-all shadow-lg relative">
-              <div className="space-y-4">
-                <div className="font-semibold text-slate-400 text-xs uppercase tracking-wider">Team Enterprise</div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-white">$49</span>
-                  <span className="text-slate-500 text-xs">/month</span>
+            {/* Team Tier */}
+            <div className="border-2 border-black p-8 bg-white flex flex-col justify-between space-y-8">
+              <div className="space-y-6">
+                <div className="font-mono text-xs uppercase tracking-widest text-neutral-500 font-bold border-b border-black pb-2">
+                  TEAM ENTERPRISE
                 </div>
-                <p className="text-slate-400 text-xs leading-relaxed">
-                  Best for clinics, team collaboration hubs, and joint academic research cohorts.
+                <div className="flex items-baseline gap-1 font-serif-display font-bold text-5xl">
+                  $49
+                  <span className="font-mono text-xs text-neutral-500 font-normal">/ MONTH</span>
+                </div>
+                <p className="font-serif-body text-xs text-neutral-700 leading-relaxed">
+                  For collaborative labs, business teams, and clinics.
                 </p>
-                <hr className="border-slate-800" />
-                
-                <ul className="space-y-3 text-xs text-slate-300">
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-emerald-450 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span><strong>Unlimited</strong> Workspaces</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-emerald-450 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span><strong>Unlimited</strong> Records Ingestion</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-emerald-450 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>Up to <strong>10 Collaborators</strong></span>
-                  </li>
+                <ul className="font-mono text-xs space-y-3 border-t border-black pt-4">
+                  <li className="flex items-center gap-2"><span>[✓]</span> UNLIMITED WORKSPACES</li>
+                  <li className="flex items-center gap-2"><span>[✓]</span> UNLIMITED INGESTION</li>
+                  <li className="flex items-center gap-2"><span>[✓]</span> 10 COLLABORATOR SEATS</li>
                 </ul>
               </div>
 
-              <div className="pt-8">
-                <Link
-                  to="/auth"
-                  state={{ plan: "team" }}
-                  className="w-full text-center bg-slate-800 hover:bg-slate-750 text-white font-semibold py-2.5 rounded-lg text-xs transition-all inline-block shadow-sm"
-                >
-                  Start 1-Day Trial (Free)
-                </Link>
-              </div>
+              <Link
+                to="/auth"
+                state={{ plan: "team" }}
+                className="w-full text-center bg-white hover:bg-black text-black hover:text-white font-mono text-xs uppercase tracking-widest py-3 border-2 border-black transition-none inline-block font-bold"
+              >
+                START 1-DAY TRIAL
+              </Link>
             </div>
 
           </div>
         </div>
       </section>
 
-      {/* Footer block */}
-      <section className="bg-slate-950 py-16 text-center text-slate-300 border-t border-slate-850">
-        <div className="max-w-4xl mx-auto px-6 md:px-10 space-y-6">
-          <h2 className="text-3xl font-extrabold tracking-tight text-white">
-            Simplify Your Data Pipeline Today
+      {/* Final Call to Action */}
+      <section className="bg-black text-white py-24 border-t-4 border-black pattern-lines-inverted text-center">
+        <div className="max-w-3xl mx-auto px-6 space-y-8">
+          <h2 className="font-serif-display font-black text-5xl md:text-6xl tracking-tight uppercase">
+            BEGIN MODELING NOW.
           </h2>
-          <p className="text-slate-400 text-sm max-w-xl mx-auto leading-relaxed">
-            Begin defining schema variables, import Excel sheets, and review custom data collections in minutes.
+          <p className="font-serif-body text-lg text-neutral-300 max-w-xl mx-auto">
+            Experience stark clarity, instant spreadsheet parsing, and strict session security.
           </p>
-          <div className="flex justify-center gap-4">
+          <div className="flex justify-center gap-4 pt-4">
             <Link
               to="/auth"
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs px-6 py-3 rounded-lg shadow-md hover:shadow-indigo-550/20 transition-all"
+              className="bg-white hover:bg-neutral-200 text-black font-mono text-xs uppercase tracking-widest px-8 py-4 border-2 border-white transition-none font-bold"
             >
-              Get Started for Free
+              CREATE ACCOUNT
             </Link>
             <button
               onClick={handleGuestAccess}
-              className="border border-slate-700 hover:bg-slate-800 text-slate-300 font-semibold text-xs px-6 py-3 rounded-lg transition-all cursor-pointer"
+              className="bg-transparent hover:bg-neutral-900 text-white font-mono text-xs uppercase tracking-widest px-8 py-4 border-2 border-white transition-none cursor-pointer font-bold"
             >
-              Try as Guest
+              TRY GUEST ACCESS
             </button>
           </div>
         </div>

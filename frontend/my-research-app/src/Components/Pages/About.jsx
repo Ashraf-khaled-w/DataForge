@@ -2,73 +2,75 @@ import { Link } from "react-router-dom";
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans w-full py-16 px-6 md:px-10 relative overflow-hidden">
-      {/* Background blobs */}
-      <div className="absolute top-1/3 left-1/4 -translate-x-1/2 w-96 h-96 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none"></div>
-      <div className="absolute bottom-1/3 right-1/4 translate-x-1/2 w-96 h-96 rounded-full bg-emerald-500/5 blur-3xl pointer-events-none"></div>
-
-      <div className="max-w-5xl mx-auto space-y-12 relative z-10">
+    <div className="min-h-screen bg-white text-black font-serif-body py-16 px-6 md:px-10 pattern-lines">
+      <div className="max-w-5xl mx-auto space-y-16">
         
         {/* Header Block */}
-        <div className="text-center space-y-4">
-          <span className="inline-flex items-center gap-1.5 bg-indigo-500/10 text-indigo-300 text-xs font-semibold px-3 py-1.5 rounded-full border border-indigo-500/20">
-            📊 Our Mission & Story
-          </span>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
-            About <span className="text-indigo-400">DataForge</span>
+        <div className="border-b-4 border-black pb-8 space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 bg-black"></span>
+            <span className="font-mono text-xs uppercase tracking-widest text-neutral-600 font-bold">
+              ORIGIN & PHILOSOPHY
+            </span>
+          </div>
+          <h1 className="font-serif-display font-black text-5xl md:text-6xl uppercase tracking-tight text-black">
+            ABOUT DATAFORGE
           </h1>
-          <p className="text-slate-400 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-            DataForge was built to solve a critical bottleneck in data science and clinical analysis: the friction between rigid databases and unstructured data collection.
+          <p className="font-serif-body text-lg text-neutral-800 max-w-2xl leading-relaxed">
+            DataForge was built to eliminate the friction between rigid relational databases and unstructured clinical spreadsheet collection.
           </p>
         </div>
 
-        {/* Brand Narrative Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center pt-6">
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-slate-200">
-              Why We Built DataForge
+        {/* Narrative & Milestones Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+          <div className="space-y-6">
+            <h2 className="font-serif-display font-bold text-3xl text-black uppercase tracking-tight border-b-2 border-black pb-2">
+              WHY WE BUILT DATAFORGE
             </h2>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              Spreadsheets are incredibly flexible but lack data validation, multi-user safety, and relational indexing. Relational databases are secure and fast but require complex SQL migrations every time a variable is added or changed.
+            <p className="font-serif-body text-base text-neutral-800 leading-relaxed">
+              <span className="float-left font-serif-display font-black text-4xl leading-none border-2 border-black px-3 py-1 mr-3 bg-black text-white">
+                S
+              </span>
+              preadsheets are flexible but lack data validation, multi-user safety, and relational indexing. Relational databases are secure and fast but require complex SQL migrations every time a variable is changed.
             </p>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              DataForge bridges this gap. By utilizing advanced PostgreSQL JSONB indexing and in-memory schema builder variables, we allow teams to structure custom fields, validate entries on-the-fly, and analyze reports dynamically in real-time.
+            <p className="font-serif-body text-base text-neutral-800 leading-relaxed">
+              DataForge bridges this gap. By combining PostgreSQL JSONB storage with in-memory schema builder variables, we allow teams to structure custom fields, validate entries on-the-fly, and analyze reports dynamically in real-time.
             </p>
           </div>
 
-          <div className="bg-slate-800/40 border border-slate-700/60 p-6 rounded-2xl shadow-xl space-y-4">
-            <div className="text-indigo-400 font-mono text-xs font-bold uppercase tracking-widest">
-              Core Milestones
+          <div className="border-4 border-black p-8 bg-white space-y-6 pattern-grid">
+            <div className="font-mono text-xs font-bold uppercase tracking-widest text-black border-b-2 border-black pb-2">
+              SYSTEM MILESTONES
             </div>
             
-            <div className="space-y-4 text-xs">
+            <div className="space-y-6">
               <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold shrink-0 border border-indigo-500/20">
-                  1
+                <div className="w-8 h-8 border-2 border-black font-mono font-bold text-sm flex items-center justify-center shrink-0">
+                  01
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-200">Flexible JSONB Engine</h4>
-                  <p className="text-slate-400 mt-1">Launched a highly performant dynamic storage model capable of handling arbitrary nested schemas.</p>
+                  <h4 className="font-serif-display font-bold text-lg">Dynamic JSONB Engine</h4>
+                  <p className="font-serif-body text-xs text-neutral-600 mt-1">High-performance schema-agnostic storage model for dynamic variables.</p>
                 </div>
               </div>
 
               <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold shrink-0 border border-emerald-500/20">
-                  2
+                <div className="w-8 h-8 border-2 border-black font-mono font-bold text-sm flex items-center justify-center shrink-0">
+                  02
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-200">Lightning Ingestion</h4>
-                  <p className="text-slate-400 mt-1">Configured raw memory excel parsers that upload thousands of row records in under 300ms.</p>
+                  <h4 className="font-serif-display font-bold text-lg">Bulk Ingestion Pipeline</h4>
+                  <p className="font-serif-body text-xs text-neutral-600 mt-1">In-memory Excel/CSV parser ingesting thousands of rows in milliseconds.</p>
                 </div>
               </div>
 
               <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-full bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold shrink-0 border border-amber-500/20">
-                  3
+                <div className="w-8 h-8 border-2 border-black font-mono font-bold text-sm flex items-center justify-center shrink-0">
+                  03
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-200">Dynamic UI Framework</h4>
-                  <p className="text-slate-400 mt-1">Engineered dynamic charts and datagrids that adjust instantaneously when variables config are updated.</p>
+                  <h4 className="font-serif-display font-bold text-lg">Single-Session Auth</h4>
+                  <p className="font-serif-body text-xs text-neutral-600 mt-1">HTTP-Only cookies with instant multi-device concurrency kickouts.</p>
                 </div>
               </div>
             </div>
@@ -76,35 +78,35 @@ export default function About() {
         </div>
 
         {/* Feature stats */}
-        <div className="grid grid-cols-3 gap-6 text-center border-y border-slate-800 py-10">
+        <div className="grid grid-cols-3 gap-6 text-center border-y-4 border-black py-10 font-mono">
           <div>
-            <div className="text-3xl md:text-4xl font-extrabold text-indigo-400">99.9%</div>
-            <div className="text-xs text-slate-500 mt-1 uppercase tracking-wider font-semibold">Uptime SLA</div>
+            <div className="font-serif-display font-bold text-4xl md:text-5xl text-black">100%</div>
+            <div className="text-[10px] uppercase tracking-widest text-neutral-500 mt-1 font-bold">MONOCHROME DEDICATION</div>
           </div>
           <div>
-            <div className="text-3xl md:text-4xl font-extrabold text-emerald-400">300ms</div>
-            <div className="text-xs text-slate-500 mt-1 uppercase tracking-wider font-semibold">Average Ingestion</div>
+            <div className="font-serif-display font-bold text-4xl md:text-5xl text-black">&lt; 10ms</div>
+            <div className="text-[10px] uppercase tracking-widest text-neutral-500 mt-1 font-bold">POSTGRES JSONB PARSE</div>
           </div>
           <div>
-            <div className="text-3xl md:text-4xl font-extrabold text-amber-400">10k+</div>
-            <div className="text-xs text-slate-500 mt-1 uppercase tracking-wider font-semibold">Records Uploaded</div>
+            <div className="font-serif-display font-bold text-4xl md:text-5xl text-black">0px</div>
+            <div className="text-[10px] uppercase tracking-widest text-neutral-500 mt-1 font-bold">BORDER RADIUS</div>
           </div>
         </div>
 
         {/* CTA */}
-        <div className="text-center bg-indigo-950/20 border border-indigo-500/20 p-8 rounded-2xl space-y-4 max-w-2xl mx-auto">
-          <h3 className="text-lg font-bold text-slate-200">
-            Ready to structure your data?
+        <div className="border-4 border-black bg-black text-white p-12 text-center space-y-6 pattern-lines-inverted">
+          <h3 className="font-serif-display font-black text-3xl md:text-4xl uppercase tracking-tight">
+            READY TO MODEL YOUR DATASET?
           </h3>
-          <p className="text-xs text-slate-400 max-w-sm mx-auto">
-            Get started today by registering a Free account, starting a 1-day Trial, or logging in instantly as a guest.
+          <p className="font-serif-body text-sm text-neutral-300 max-w-md mx-auto">
+            Get started by registering a Free account, testing a 1-day Trial, or exploring as a guest.
           </p>
-          <div className="pt-2">
+          <div>
             <Link
               to="/auth"
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs px-6 py-3 rounded-lg shadow-lg hover:shadow-indigo-550/25 transition-all inline-block"
+              className="bg-white hover:bg-neutral-200 text-black font-mono text-xs uppercase tracking-widest px-8 py-4 border-2 border-white font-bold transition-none inline-block"
             >
-              Sign In / Register
+              AUTHENTICATE NOW →
             </Link>
           </div>
         </div>

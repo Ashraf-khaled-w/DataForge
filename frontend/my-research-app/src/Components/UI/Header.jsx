@@ -25,15 +25,15 @@ export default function Header() {
     }
   };
 
-  // Helper to format remaining trial hours
+  // Minimalist Monochrome Badge Helper
   const getTrialBadge = () => {
     if (!user?.subscription) return null;
     const { plan_name, current_period_end, status } = user.subscription;
 
     if (plan_name === "free") {
       return (
-        <span className="bg-slate-800 text-slate-400 text-[10px] font-bold px-2.5 py-1 rounded-md border border-slate-700">
-          Free Tier
+        <span className="bg-white text-black text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 border border-black font-bold">
+          FREE TIER
         </span>
       );
     }
@@ -43,8 +43,8 @@ export default function Header() {
 
     if (diffMs <= 0 || status === "expired") {
       return (
-        <span className="bg-rose-500/10 text-rose-400 text-[10px] font-bold px-2.5 py-1 rounded-md border border-rose-500/20">
-          Expired Trial
+        <span className="bg-black text-white text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 border border-black font-bold">
+          EXPIRED TRIAL
         </span>
       );
     }
@@ -53,122 +53,126 @@ export default function Header() {
     const hoursText = hoursLeft > 24 ? `${Math.ceil(hoursLeft / 24)}d left` : `${hoursLeft}h left`;
 
     return (
-      <span className="bg-indigo-500/10 text-indigo-300 text-[10px] font-bold px-2.5 py-1 rounded-md border border-indigo-500/20 flex items-center gap-1.5">
-        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
-        <span className="capitalize">{plan_name}</span> {isTrial ? `Trial (${hoursText})` : ""}
+      <span className="bg-white text-black text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 border-2 border-black font-bold flex items-center gap-1.5">
+        <span className="w-1.5 h-1.5 bg-black"></span>
+        <span className="capitalize">{plan_name}</span> {isTrial ? `(${hoursText})` : ""}
       </span>
     );
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 shadow-lg">
-      <div className="max-w-7xl mx-auto px-6 md:px-10 h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-40 w-full bg-white border-b-2 border-black">
+      <div className="max-w-7xl mx-auto px-6 md:px-10 h-20 flex items-center justify-between">
         
-        {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-2.5 hover:opacity-95 transition-opacity">
-          <div className="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center shadow-md shadow-indigo-550/30">
-            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 9.172V5L8 4z" />
-            </svg>
+        {/* Editorial Monochrome Brand Logo */}
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="w-8 h-8 bg-black border border-black flex items-center justify-center text-white font-serif-display font-black text-lg transition-transform duration-100 group-hover:bg-white group-hover:text-black">
+            D
           </div>
-          <span className="font-extrabold text-white text-lg tracking-tight">
-            Data<span className="text-indigo-400">Forge</span>
-          </span>
+          <div className="flex flex-col">
+            <span className="font-serif-display font-bold text-black text-xl tracking-tight leading-none group-hover:underline">
+              DATAFORGE
+            </span>
+            <span className="font-mono text-[9px] uppercase tracking-widest text-neutral-500 leading-none mt-1">
+              DATA PLATFORM
+            </span>
+          </div>
         </Link>
         
-        {/* Navigation Bar Links with premium pill-shape designs */}
-        <nav className="flex items-center gap-1.5">
+        {/* Editorial Navigation Links */}
+        <nav className="flex items-center gap-1 md:gap-2">
           <Link
             to="/"
-            className={`text-xs font-semibold px-3 py-2 rounded-lg transition-all duration-200 ${
+            className={`text-xs font-mono uppercase tracking-widest px-3.5 py-2 transition-none border ${
               isActive("/")
-                ? "text-indigo-300 bg-indigo-500/10 border border-indigo-500/25 shadow-sm"
-                : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+                ? "bg-black text-white border-black font-bold"
+                : "text-black border-transparent hover:border-black"
             }`}
           >
-            Home
+            HOME
           </Link>
 
           {user && (
             <>
               <Link
                 to="/workspaces"
-                className={`text-xs font-semibold px-3 py-2 rounded-lg transition-all duration-200 ${
+                className={`text-xs font-mono uppercase tracking-widest px-3.5 py-2 transition-none border ${
                   isWorkspacesActive
-                    ? "text-indigo-300 bg-indigo-500/10 border border-indigo-500/25 shadow-sm"
-                    : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+                    ? "bg-black text-white border-black font-bold"
+                    : "text-black border-transparent hover:border-black"
                 }`}
               >
-                Workspaces
+                WORKSPACES
               </Link>
               
               <Link
                 to="/dashboard"
-                className={`text-xs font-semibold px-3 py-2 rounded-lg transition-all duration-200 ${
+                className={`text-xs font-mono uppercase tracking-widest px-3.5 py-2 transition-none border ${
                   isActive("/dashboard")
-                    ? "text-indigo-300 bg-indigo-500/10 border border-indigo-500/25 shadow-sm"
-                    : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+                    ? "bg-black text-white border-black font-bold"
+                    : "text-black border-transparent hover:border-black"
                 }`}
               >
-                Analytics
+                ANALYTICS
               </Link>
             </>
           )}
 
           <Link
             to="/about"
-            className={`text-xs font-semibold px-3 py-2 rounded-lg transition-all duration-200 ${
+            className={`text-xs font-mono uppercase tracking-widest px-3.5 py-2 transition-none border ${
               isActive("/about")
-                ? "text-indigo-300 bg-indigo-500/10 border border-indigo-500/25 shadow-sm"
-                : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+                ? "bg-black text-white border-black font-bold"
+                : "text-black border-transparent hover:border-black"
             }`}
           >
-            About
+            ABOUT
           </Link>
 
           <Link
             to="/support"
-            className={`text-xs font-semibold px-3 py-2 rounded-lg transition-all duration-200 ${
+            className={`text-xs font-mono uppercase tracking-widest px-3.5 py-2 transition-none border ${
               isActive("/support")
-                ? "text-indigo-300 bg-indigo-500/10 border border-indigo-500/25 shadow-sm"
-                : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+                ? "bg-black text-white border-black font-bold"
+                : "text-black border-transparent hover:border-black"
             }`}
           >
-            Support
+            SUPPORT
           </Link>
         </nav>
         
-        {/* Auth / CTA Button */}
-        <div className="flex items-center gap-4">
+        {/* Action Controls */}
+        <div className="flex items-center gap-3">
           {user ? (
             <div className="flex items-center gap-3">
               {getTrialBadge()}
               
-              <span className="hidden md:inline text-xs font-bold text-slate-300">
-                {user.full_name || "User"}
+              <span className="hidden md:inline text-xs font-mono uppercase font-bold text-black border-b border-black">
+                {user.full_name || "USER"}
               </span>
 
               <button
                 onClick={handleLogoutClick}
-                className="text-xs font-bold text-slate-350 hover:text-rose-400 hover:bg-rose-500/10 px-3 py-2 rounded-lg border border-slate-800 hover:border-rose-500/20 transition-all cursor-pointer"
+                className="text-xs font-mono uppercase tracking-widest text-black hover:bg-black hover:text-white px-4 py-2 border border-black transition-none cursor-pointer"
               >
-                Logout
+                LOGOUT
               </button>
             </div>
           ) : (
             <div className="flex items-center gap-3">
               <Link
                 to="/auth"
-                className="text-xs font-bold text-slate-300 hover:text-white px-3 py-2 rounded-lg hover:bg-slate-800/60 transition-all"
+                className="text-xs font-mono uppercase tracking-widest text-black hover:underline px-3 py-2"
               >
-                Login / Register
+                LOGIN
               </Link>
               
               <button
                 onClick={handleGuestClick}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3.5 py-2 rounded-lg shadow-md hover:shadow-indigo-550/20 transition-all cursor-pointer"
+                className="bg-black hover:bg-white text-white hover:text-black font-mono text-xs uppercase tracking-widest px-4 py-2.5 border border-black transition-none cursor-pointer flex items-center gap-1.5"
               >
-                Try as Guest
+                <span>TRY GUEST</span>
+                <span>→</span>
               </button>
             </div>
           )}

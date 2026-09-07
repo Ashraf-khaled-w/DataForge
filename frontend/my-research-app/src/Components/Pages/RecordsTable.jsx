@@ -133,7 +133,6 @@ function RecordsTable() {
   // Sort State
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
-  // Load workspace details once on mount/workspace change
   useEffect(() => {
     const loadWorkspaceData = async () => {
       try {
@@ -149,7 +148,6 @@ function RecordsTable() {
     loadWorkspaceData();
   }, [workspaceId]);
 
-  // Fetch records page helper
   const fetchRecords = async (page) => {
     try {
       const data = await getRecordsByWorkspaceId(workspaceId, page, 50);
@@ -159,7 +157,6 @@ function RecordsTable() {
         setTotalRecords(data.totalRecords || 0);
         setCurrentPage(data.currentPage || 1);
       } else {
-        // Fallback for raw arrays
         setPatients(Array.isArray(data) ? data : []);
         setTotalPages(1);
         setTotalRecords(Array.isArray(data) ? data.length : 0);
@@ -170,7 +167,6 @@ function RecordsTable() {
     }
   };
 
-  // Load records on mount or page change
   useEffect(() => {
     fetchRecords(currentPage);
   }, [workspaceId, currentPage]);
@@ -232,7 +228,6 @@ function RecordsTable() {
     return resultVal;
   };
 
-  // Sorting logic
   const handleSort = (key) => {
     let direction = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
@@ -266,14 +261,12 @@ function RecordsTable() {
       bVal = getFieldValue(b, field);
     }
 
-    // Try numerical comparison first
     const aNum = Number(aVal);
     const bNum = Number(bVal);
     if (!isNaN(aNum) && !isNaN(bNum) && aVal !== "" && bVal !== "") {
       return sortConfig.direction === "asc" ? aNum - bNum : bNum - aNum;
     }
 
-    // Alphabetical comparison fallback
     const aStr = String(aVal).toLowerCase();
     const bStr = String(bVal).toLowerCase();
     if (aStr < bStr) return sortConfig.direction === "asc" ? -1 : 1;
@@ -308,7 +301,6 @@ function RecordsTable() {
     try {
       await uploadRecordsFile(workspaceId, file);
       alert("Records imported successfully!");
-      // Reset to page 1 and fetch updated list
       setCurrentPage(1);
       await fetchRecords(1);
     } catch (error) {
@@ -331,15 +323,13 @@ function RecordsTable() {
       };
 
       await addRecord(newRecord);
-      
-      // Re-fetch page 1 to sync with paginated database state
       setCurrentPage(1);
       await fetchRecords(1);
       setFormValues({});
       setIsModalOpen(false);
     } catch (error) {
       console.error("Error adding record:", error);
-      setErrorMsg(error.response?.data?.error?.message || "Failed to add record. Workspace limits might be exceeded.");
+      setErrorMsg(error.response?.data?.error?.message || "Failed to add record.");
     } finally {
       setSubmitting(false);
     }
@@ -351,14 +341,13 @@ function RecordsTable() {
     }
     try {
       await deleteRecord(id);
-      // Re-fetch the current page to replace the deleted row
       await fetchRecords(currentPage);
     } catch (error) {
       console.error("Error deleting record:", error);
       alert("Failed to delete record.");
     }
   };
-  
+
   const handleDownloadExcel = () => {
     if (!study || patients.length === 0) {
       alert("No data available to export.");
@@ -389,41 +378,40 @@ function RecordsTable() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-4 sm:p-6 md:p-10 font-sans w-full">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-white text-black font-serif-body py-12 px-6 md:px-10 pattern-lines">
+      <div className="max-w-7xl mx-auto space-y-8">
         
-        {/* Navigation Breadcrumb */}
-        <nav className="flex items-center text-sm text-slate-400 gap-2">
-          <Link to="/workspaces" className="hover:text-indigo-400 font-medium transition-colors">
-            Workspaces
+        {/* Breadcrumb Navigation */}
+        <nav className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-black font-bold">
+          <Link to="/workspaces" className="hover:underline">
+            WORKSPACES
           </Link>
-          <svg className="w-4 h-4 text-slate-650" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-          </svg>
-          <span className="text-slate-200 font-semibold truncate max-w-xs md:max-w-md">
-            {study?.title || `Workspace #${workspaceId}`}
+          <span>/</span>
+          <span className="border-b-2 border-black">
+            {study?.title || `WORKSPACE #${workspaceId}`}
           </span>
         </nav>
 
         {/* Header Block */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-805/40 border border-slate-700/60 p-6 rounded-xl shadow-xl">
-          <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <span className="bg-indigo-500/10 text-indigo-300 text-xs font-semibold px-2.5 py-1 rounded-full border border-indigo-500/20">
-                {patients.length} Records
+        <div className="flex flex-col md:flex-row md:items-end justify-between border-b-4 border-black pb-6 gap-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 bg-black"></span>
+              <span className="font-mono text-xs uppercase tracking-widest text-neutral-600 font-bold border border-black px-2 py-0.5">
+                {totalRecords} TOTAL RECORDS
               </span>
             </div>
-            <h1 className="text-xl md:text-2xl font-bold text-white">
-              {study?.title || "Loading Workspace..."}
+            <h1 className="font-serif-display font-black text-3xl md:text-4xl uppercase tracking-tight text-black">
+              {study?.title || "WORKSPACE DATA GRID"}
             </h1>
             {study?.description && (
-              <p className="text-slate-450 text-sm max-w-3xl leading-relaxed">
+              <p className="font-serif-body text-sm text-neutral-700 max-w-3xl leading-relaxed">
                 {study.description}
               </p>
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <input
               type="file"
               id="record-file-upload"
@@ -434,337 +422,274 @@ function RecordsTable() {
             
             <label
               htmlFor="record-file-upload"
-              className={`border border-slate-700 hover:bg-slate-800 text-slate-300 font-medium text-xs px-4 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-2 cursor-pointer ${
-                uploading || loading || fields.length === 0 ? "opacity-50 cursor-not-allowed pointer-events-none" : ""
+              className={`bg-white hover:bg-black text-black hover:text-white font-mono text-xs uppercase tracking-widest px-4 py-2.5 border-2 border-black transition-none cursor-pointer font-bold ${
+                uploading || loading || fields.length === 0 ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
-              {uploading ? (
-                <>
-                  <svg className="animate-spin h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Uploading...
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                  </svg>
-                  Import File
-                </>
-              )}
+              {uploading ? "UPLOADING..." : "IMPORT FILE"}
             </label>
 
             <button
               onClick={handleDownloadExcel}
               disabled={loading || patients.length === 0}
-              className="border border-slate-700 hover:bg-slate-800 text-slate-300 font-medium text-xs px-4 py-2.5 rounded-lg shadow-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Download records as Excel"
+              className="bg-white hover:bg-black text-black hover:text-white font-mono text-xs uppercase tracking-widest px-4 py-2.5 border-2 border-black transition-none cursor-pointer font-bold disabled:opacity-50"
             >
-              <svg className="w-4 h-4 text-emerald-450" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              Export Excel
+              EXPORT EXCEL
             </button>
 
             <button
               onClick={handleOpenModal}
               disabled={loading || fields.length === 0}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs px-4 py-2.5 rounded-lg shadow transition-all flex items-center gap-2 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed cursor-pointer"
+              className="bg-black hover:bg-white text-white hover:text-black font-mono text-xs uppercase tracking-widest px-6 py-2.5 border-2 border-black transition-none cursor-pointer font-bold disabled:opacity-50"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-              </svg>
-              Add Record
+              + ADD RECORD
             </button>
           </div>
         </div>
 
         {/* Content Table Card */}
-        <div className="bg-slate-800/25 border border-slate-700/60 rounded-xl shadow-xl overflow-hidden">
+        <div className="border-4 border-black bg-white">
           
-          <div className="p-5 border-b border-slate-700/60 bg-slate-900/30">
-            <div className="relative max-w-md">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </span>
-              <input
-                type="text"
-                placeholder="Search records..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700/60 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm transition-all"
-              />
-            </div>
+          <div className="p-4 border-b-2 border-black bg-neutral-100 flex items-center justify-between">
+            <input
+              type="text"
+              placeholder="FILTER RECORDS..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full max-w-md px-3 py-2 border-b-2 border-black bg-white text-black font-mono text-xs tracking-widest focus:outline-none placeholder:text-neutral-400"
+            />
+            <span className="font-mono text-xs uppercase tracking-widest font-bold">
+              PAGE {currentPage} OF {totalPages || 1}
+            </span>
           </div>
 
           {loading ? (
-            <div className="p-8 space-y-4">
-              <div className="h-6 bg-slate-800 rounded w-1/4 animate-pulse"></div>
-              <div className="h-3 bg-slate-855 rounded w-2/3 animate-pulse"></div>
-              <div className="border-t border-slate-800 my-4"></div>
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-10 bg-slate-800/50 rounded animate-pulse"></div>
-              ))}
+            <div className="p-8 font-mono text-xs uppercase tracking-widest text-neutral-500">
+              LOADING RECORD ROWS ENGINE...
             </div>
           ) : fields.length === 0 ? (
-            <div className="p-12 text-center flex flex-col items-center justify-center">
-              <div className="w-16 h-16 bg-amber-500/5 text-amber-500 rounded-full flex items-center justify-center mb-4 border border-amber-500/10">
-                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
+            <div className="p-16 text-center space-y-4">
+              <div className="w-12 h-12 border-2 border-black text-black flex items-center justify-center mx-auto font-mono font-bold text-xl">
+                !
               </div>
-              <h3 className="text-lg font-semibold text-slate-200">No Columns Configured</h3>
-              <p className="text-slate-450 text-xs mt-1 max-w-md">
-                This workspace does not have any schema variables configured. Go back and add columns in editor settings.
+              <h3 className="font-serif-display font-bold text-xl uppercase">NO COLUMNS CONFIGURED</h3>
+              <p className="font-serif-body text-sm text-neutral-600 max-w-md mx-auto">
+                This workspace does not have any columns defined. Open Workspaces Manager to configure schema fields.
               </p>
             </div>
-          ) : sortedPatients.length === 0 ? (
-            <div className="p-12 text-center flex flex-col items-center justify-center">
-              <div className="w-16 h-16 bg-slate-800 text-slate-400 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-slate-200">No records found</h3>
-              <p className="text-slate-450 text-xs mt-1 max-w-md">
-                {searchTerm ? "No records match the search query." : "Start adding records for this workspace by clicking 'Add Record'."}
+          ) : filteredPatients.length === 0 ? (
+            <div className="p-16 text-center space-y-4">
+              <h3 className="font-serif-display font-bold text-xl uppercase">NO RECORDS FOUND</h3>
+              <p className="font-serif-body text-sm text-neutral-600">
+                {searchTerm ? "No record rows match your search query." : "Click '+ ADD RECORD' or 'IMPORT FILE' to add your dataset entries."}
               </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse font-serif-body">
                 <thead>
-                  <tr className="bg-slate-800/40 border-b border-slate-700/60">
+                  <tr className="bg-black text-white font-mono text-xs uppercase tracking-widest border-b-2 border-black">
                     <th
                       onClick={() => handleSort("row_num")}
-                      className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider w-16 cursor-pointer hover:text-indigo-400 select-none transition-colors"
+                      className="px-6 py-4 w-16 cursor-pointer hover:bg-neutral-800 select-none whitespace-nowrap"
                     >
-                      <div className="flex items-center gap-1.5">
-                        #
-                        {sortConfig.key === "row_num" && (
-                          <span className="text-[10px] text-indigo-400">
-                            {sortConfig.direction === "asc" ? " ▲" : " ▼"}
-                          </span>
-                        )}
-                      </div>
+                      # {sortConfig.key === "row_num" && (sortConfig.direction === "asc" ? "▲" : "▼")}
                     </th>
+
                     {fields.map((field) => (
                       <th
                         key={field.key}
                         onClick={() => handleSort(field.key)}
-                        className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider min-w-[150px] whitespace-nowrap cursor-pointer hover:text-indigo-400 select-none transition-colors"
+                        className="px-6 py-4 cursor-pointer hover:bg-neutral-800 select-none whitespace-nowrap"
                       >
-                        <div className="flex items-center gap-1">
-                          {field.label || field.key}
+                        <div className="flex items-center gap-1.5">
+                          <span>{field.label || field.key}</span>
+                          {field.required && <span className="text-white">*</span>}
                           {sortConfig.key === field.key && (
-                            <span className="text-[10px] text-indigo-400">
+                            <span className="text-white">
                               {sortConfig.direction === "asc" ? " ▲" : " ▼"}
                             </span>
                           )}
                         </div>
                       </th>
                     ))}
-                    <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider w-24 text-right">
-                      Actions
+
+                    <th className="px-6 py-4 text-right w-32 whitespace-nowrap">
+                      ACTIONS
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-805">
-                  {sortedPatients.map((patient, idx) => (
-                    <tr key={patient.id} className="hover:bg-slate-805/30 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-xs font-mono text-slate-400">
-                        {(currentPage - 1) * 50 + idx + 1}
-                      </td>
-                      {fields.map((field) => (
-                        <td key={field.key} className="px-6 py-4 whitespace-nowrap text-xs text-slate-300 font-medium">
-                          {getFieldValue(patient, field) || <span className="text-slate-600">-</span>}
+                <tbody className="divide-y divide-black">
+                  {sortedPatients.map((patient, idx) => {
+                    const rowNumber = (currentPage - 1) * 50 + idx + 1;
+                    return (
+                      <tr key={patient.id || idx} className="hover:bg-neutral-100 transition-none font-serif-body">
+                        <td className="px-6 py-4 whitespace-nowrap font-mono text-xs font-bold text-black">
+                          #{rowNumber}
                         </td>
-                      ))}
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-xs">
-                        <button
-                          onClick={() => handleDeletePatient(patient.id)}
-                          className="p-1.5 text-slate-400 hover:text-rose-455 hover:bg-slate-800 rounded-md transition-all cursor-pointer"
-                          title="Delete Record Row"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+
+                        {fields.map((field) => {
+                          const val = getFieldValue(patient, field);
+                          return (
+                            <td key={field.key} className="px-6 py-4 text-sm whitespace-nowrap text-black">
+                              {val !== "" && val !== null && val !== undefined ? (
+                                String(val)
+                              ) : (
+                                <span className="text-neutral-400 font-mono text-xs">—</span>
+                              )}
+                            </td>
+                          );
+                        })}
+
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <button
+                            onClick={() => handleDeletePatient(patient.id)}
+                            className="font-mono text-xs uppercase tracking-widest bg-white hover:bg-black text-black hover:text-white border border-black px-3 py-1 font-bold transition-none cursor-pointer"
+                          >
+                            DEL
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
+            </div>
+          )}
 
-              {/* Pagination Controls Bar */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 bg-slate-900/40 border-t border-slate-800 rounded-b-2xl">
-                <div className="text-xs text-slate-400">
-                  Showing <span className="font-semibold text-white">{patients.length}</span> of <span className="font-semibold text-white">{totalRecords}</span> records
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="p-1.5 border border-slate-700 rounded-lg text-slate-300 bg-slate-850 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                    title="Previous Page"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
-                  <span className="text-xs font-semibold text-slate-300 px-3">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className="p-1.5 border border-slate-700 rounded-lg text-slate-300 bg-slate-850 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                    title="Next Page"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </div>
+          {/* Pagination Controls Footer */}
+          {totalPages > 1 && (
+            <div className="p-4 border-t-2 border-black bg-white flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs uppercase tracking-widest">
+              <span>SHOWING {patients.length} OF {totalRecords} TOTAL RECORDS</span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="bg-white hover:bg-black text-black hover:text-white border border-black px-4 py-2 font-bold transition-none disabled:opacity-40"
+                >
+                  ← PREV
+                </button>
+                <span className="font-bold px-2">
+                  PAGE {currentPage} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="bg-white hover:bg-black text-black hover:text-white border border-black px-4 py-2 font-bold transition-none disabled:opacity-40"
+                >
+                  NEXT →
+                </button>
               </div>
             </div>
           )}
         </div>
-        
+
       </div>
 
-      {/* Dynamic Add Record Modal */}
+      {/* Add Record Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none bg-slate-950/60 backdrop-blur-sm">
-          <div className="relative w-full max-w-lg mx-auto my-6 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-none p-4">
+          <div className="relative w-full max-w-xl bg-white border-4 border-black p-8 space-y-6 max-h-[90vh] overflow-y-auto pattern-grid">
             
-            {/* Modal Box */}
-            <div className="relative flex flex-col w-full bg-slate-850 border border-slate-700/60 rounded-2xl shadow-2xl outline-none focus:outline-none overflow-hidden">
-              
-              {/* Modal Header */}
-              <div className="flex items-start justify-between p-5 border-b border-slate-800 bg-slate-900/30">
-                <div>
-                  <h3 className="text-lg font-bold text-white">Add Record Row</h3>
-                  <p className="text-xs text-slate-450 mt-0.5">
-                    Insert values for the workspace's configured columns.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="p-1 ml-auto bg-transparent border-0 text-slate-400 hover:text-slate-200 float-right leading-none font-semibold outline-none focus:outline-none transition-colors cursor-pointer"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+            <div className="flex items-start justify-between border-b-2 border-black pb-4">
+              <div>
+                <h3 className="font-serif-display font-black text-2xl uppercase tracking-tight text-black">
+                  ADD NEW RECORD
+                </h3>
+                <p className="font-mono text-xs uppercase tracking-widest text-neutral-600 mt-1">
+                  ENTER VALUES FOR REGISTERED SCHEMA FIELDS
+                </p>
               </div>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="font-mono font-bold text-base px-3 py-1 border-2 border-black bg-white hover:bg-black hover:text-white cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
 
-              {/* Modal Form */}
-              <form onSubmit={handleFormSubmit}>
-                <div className="relative p-6 flex-auto max-h-[60vh] overflow-y-auto space-y-4">
-                  {errorMsg && (
-                    <div className="bg-rose-500/10 border border-rose-500/20 text-rose-350 p-3 rounded-xl text-xs flex items-center gap-2">
-                      <svg className="w-4 h-4 shrink-0 text-rose-455" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                      </svg>
-                      <span>{errorMsg}</span>
-                    </div>
-                  )}
+            <form onSubmit={handleFormSubmit} className="space-y-6">
+              {errorMsg && (
+                <div className="border-2 border-black bg-black text-white p-4 font-mono text-xs">
+                  <span>[ERROR] {errorMsg}</span>
+                </div>
+              )}
 
-                  {fields.map((field) => (
-                    <div key={field.key} className="space-y-1">
-                      <label className="block text-xs font-bold text-slate-355 uppercase tracking-wider">
-                        {field.label || field.key}
-                        {field.required && <span className="text-rose-550 ml-0.5">*</span>}
+              <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-1">
+                {fields.map((field) => {
+                  const val = formValues[field.key] !== undefined ? formValues[field.key] : "";
+
+                  return (
+                    <div key={field.key} className="space-y-1.5 font-serif-body">
+                      <label className="block font-mono text-xs uppercase font-bold tracking-widest text-black">
+                        {field.label || field.key} {field.required && "*"}
                       </label>
-                      
+
                       {field.type === "select" ? (
-                        <div className="relative flex items-center">
-                          <select
-                            required={field.required}
-                            value={formValues[field.key] || ""}
-                            onChange={(e) => handleInputChange(field.key, e.target.value)}
-                            className="w-full px-3 py-2 bg-slate-900 border border-slate-700/60 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm transition-all cursor-pointer appearance-none pr-8 select-none"
-                          >
-                            <option value="">Select / اختر...</option>
-                            {(field.options || []).map((opt) => (
-                              <option key={opt} value={opt}>
-                                {opt}
-                              </option>
-                            ))}
-                          </select>
-                          <div className="pointer-events-none absolute right-3 flex items-center text-slate-400">
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </div>
-                        </div>
-                      ) : field.type === "date" || field.type === "birthday" ? (
-                        <input
-                          type="date"
+                        <select
                           required={field.required}
-                          value={formValues[field.key] || ""}
+                          value={val}
                           onChange={(e) => handleInputChange(field.key, e.target.value)}
-                          className="w-full px-3 py-2 bg-slate-900 border border-slate-700/60 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm transition-all cursor-pointer"
-                        />
+                          className="w-full px-3 py-2.5 border-2 border-black bg-white text-black font-mono text-xs uppercase cursor-pointer"
+                        >
+                          <option value="">SELECT AN OPTION...</option>
+                          {(field.options || []).map((opt, oIdx) => (
+                            <option key={oIdx} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
                       ) : field.type === "number" || field.type === "decimal" ? (
                         <input
                           type="number"
                           step={field.type === "decimal" ? "any" : "1"}
                           required={field.required}
-                          value={formValues[field.key] || ""}
+                          value={val}
                           onChange={(e) => handleInputChange(field.key, e.target.value)}
-                          placeholder={`Enter ${field.label || field.key}`}
-                          className="w-full px-3 py-2 bg-slate-900 border border-slate-700/60 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm transition-all"
+                          placeholder="Enter numeric value..."
+                          className="w-full px-3 py-2.5 border-b-2 border-black focus:outline-none font-mono text-xs"
+                        />
+                      ) : field.type === "date" || field.type === "birthday" ? (
+                        <input
+                          type="date"
+                          required={field.required}
+                          value={val}
+                          onChange={(e) => handleInputChange(field.key, e.target.value)}
+                          className="w-full px-3 py-2.5 border-2 border-black font-mono text-xs"
                         />
                       ) : (
                         <input
                           type="text"
                           required={field.required}
-                          value={formValues[field.key] || ""}
+                          value={val}
                           onChange={(e) => handleInputChange(field.key, e.target.value)}
-                          placeholder={`Enter ${field.label || field.key}`}
-                          className="w-full px-3 py-2 bg-slate-900 border border-slate-700/60 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm transition-all"
+                          placeholder="Enter text string..."
+                          className="w-full px-3 py-2.5 border-b-2 border-black focus:outline-none text-sm"
                         />
                       )}
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
+              </div>
 
-                {/* Modal Footer */}
-                <div className="flex items-center justify-end p-5 border-t border-slate-800 bg-slate-900/30 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 border border-slate-700 text-slate-400 rounded-lg text-sm font-medium hover:bg-slate-800 transition-all cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm px-4 py-2 rounded-lg shadow transition-all flex items-center gap-1.5 disabled:bg-indigo-500/50 cursor-pointer"
-                  >
-                    {submitting ? (
-                      <>
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Saving...
-                      </>
-                    ) : (
-                      "Save Record"
-                    )}
-                  </button>
-                </div>
-              </form>
+              <div className="flex items-center justify-end border-t-2 border-black pt-6 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="font-mono text-xs uppercase tracking-widest bg-white hover:bg-black text-black hover:text-white border-2 border-black px-6 py-3 font-bold transition-none cursor-pointer"
+                >
+                  CANCEL
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="font-mono text-xs uppercase tracking-widest bg-black hover:bg-white text-white hover:text-black border-2 border-black px-6 py-3 font-bold transition-none cursor-pointer disabled:opacity-50"
+                >
+                  {submitting ? "SAVING..." : "SAVE RECORD ENTRY →"}
+                </button>
+              </div>
+            </form>
 
-            </div>
           </div>
         </div>
       )}
